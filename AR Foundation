@@ -1,6 +1,7 @@
 ※ 2강. AR Scene의 필수 Component를 사용 / AR Raycast를 통해 Object 생성
 
 ◎ 활용예제 : 지면(표면)을 감지하고 감지된 지면(표면)에 원하는 Object를 터치로 배치
+
 ◎ 방법
   ● 터치한 지점을 기준으로(즉, 화면공간에서 터치한 지점을 기준으로)
   ● 그 기준을 AR 공간상으로 옮겨서
@@ -15,7 +16,6 @@
 ** Scene에새로운 Component가 최소 하나가 필요하고, 그것을 AR Session Origin에 추가해야 한다.
    (AR Session Origin Component가 추가되어 있는 Object에 AR Raycast Manager Component를 추가한다.)
    ▶ AR Session Origin에 추가해야 하는 이유 : AR Session Origin이 AR 공간의 기준이 된다.
-
 
 
 (1) Cube Object를 Prefab으로 만들기(만들고 Hierarchy창에 있는 Cube Object는 삭제)
@@ -35,9 +35,12 @@ using UnityEngine.XR.ARSubsystems; // AR Raycast를 사용하기 위해 추가
  
   public ARRaycastManager arRAycaster; // ARRAycastManager가 Raycast를 실행한다. (Raycast를 사용하기 위해)
   
+  
   public GameObject spawnPrefab; // 터지할 지점에 생성할 GameObject Prefab(생성할 Target)
 
+
   // void Start() 함수는 삭제(이번 예제에서는 필요 없음) //
+  
   
   void Update()
   {
@@ -47,6 +50,8 @@ using UnityEngine.XR.ARSubsystems; // AR Raycast를 사용하기 위해 추가
     if(Input.touchCount == 0) { return; }
     
     ▶ Input.touchCount : AR 관련 Library가 아니고, Unity에 원래 속해있는.., 현재 프레임에서 화면에 몇 번 입력이(터치가) 되었는지 알 수 있다.
+    
+    
     
     (2) 만약, 여러 번을 입력했다면(터치했다면), 그 중에서 첫 번째 입력 지점(터치 지점)을 사용할 것이다.
     
@@ -66,10 +71,226 @@ using UnityEngine.XR.ARSubsystems; // AR Raycast를 사용하기 위해 추가
              단어 그대로 지금(현재) 마우스버튼을 클릭했는지 안했는지의 정보만 알 수 있고, 여러 부가 정보도 알 수 없다
              그래서 GetMouseButton Method를 사용하면 다른 별게의 Method를 또 사용해야 하므로 코드가 길어질(복잡) 수 있다.
              
+             따라서 현재 예제에서는 모바일 기기 대상이므로 Touch Type 하나로 사용하는 것이 효율적이다.
+ 
+    
+    (3) if(현재 입력(터치)의 상태 != 터치 상태가 Begin인 경우)
+    
+    // 현재 입력(터치)의 상태가 Began이 아니면 더 이상 진행하지 않고 즉시 종료한다.
+    if(touch.phase != TouchPhase.Began){ return; }
 
-그래서 별게의 다른 함수를 또 사용해야하므로(즉, 마우스 관련 함수로 현재 예제코드를 작성하려면 코드가 복잡해짐)
 
-지금 예제에서는 touch 타입 하나로 사용하는 것이 가장 좋다.(왜? 모바일 기기를 대상으로 하니까)
+    (4) 첫번쨰 입력(터치)라면 Raycast를 실행해야 한다.
+    
+    // arRaycaster : public으로 선언해준 ARRaycastManager
+    arRaycaster.Raycast(touch.position, hits, TrackableType.Planes);
+    
+    ▶ touch.position : Raycast가 실행되는 화면상의 지점
+    ▶ hits : Raycast가 끝났을 때, 그 Raycast의 결과물을 저장하는 Container(Container의 자료형은 List여야 한다.)
+    ▶ TrackableType.Planes : Raycast를 실행할 때, 어떤 친구에게만 한정해서 실행할 것인지 Trackable Type으로 선언할 수 있음.
+        >> Plane : 평면 / Image / ......
+ 
+
+
+ 
+
+private List<ARRaycastHit> hits = new List<ARRaycastHit>(); // Raycast에 hit을 사용하기 위해 새롭게 선언.
+
+ > List로 선언하는 이유 : 레이캐스트를 실행했을 때, 두 개 이상의 충돌 정보가 생성될 수 있다.(두 개 이상을 관통할 수 있어서 여러 정보를 저장할 수 있는 리스트로 저장)
+
+ 
+
+ 
+
+ 
+
+
+
+ 
+
+
+
+ 
+
+** 그래서 실제로 광선에 닿은 무엇인가가 있다면 true가 반환된다.
+
+ 
+
+if(arRaycaster.Raycast(touch.position, hits, TrackableType.Planes)) // 광선에 닿은 무엇인가가 있다면
+
+{ 
+
+// 여러개의 정보 중에서 첫번째 정보만 사용할 것이므로 인덱스는 [0]
+
+// 레이캐스트의 결과물은 pose 타입으로 들어온다.
+
+	Pose hitPose = hits[0].pose;
+
+ 
+
+//Instantiate메소드를 통해서
+
+	Instantiate(spawnPrefab, hitPose.position, hitPose.rotation);
+
+	
+
+}
+
+ 
+
+  > Pose 타입 : AR 레이캐스트를 사용할 때, 단순히 결과(즉, 충돌지점만) 가져오는 것은 별 쓸모가 없다.
+
+    그래서  충돌지점을 포함해서 다양한 부가정보도 함께 저장하는 것이 Pose 타입이다.
+
+    (ex. 실제 핸드폰의 카메라의 위치, AR 공간상에서 방금 광선에 맞았던 물체사이의 거리 등)
+
+ 
+
+ > spawnPrefab : 생성할 복제본
+
+ > hitPose.position : 생성할 위치(즉, 충돌위치)
+
+ > hitPose.rotation : 충돌 각도(회전방향)
+
+ 
+
+ 
+
+(5) 
+
+스크립트를 추가할 오브젝트에 금방 작성한 스트립트를 추가해주고,
+
+AR Raycaster에는 AR Session Origin 게임오브젝트 넣어주고, 
+
+spawn prefab(즉, 대상)은 큐브 오브젝트로 생성했었던 프리팹을 넣어준다.
+
+ 
+
+ 
+
+(6) 
+
+나중에 빌드해서 잘 되는지 확인해볼 때, 평면인식을 잘 하고 있는지 확실하게 알 수 있는 방법은
+
+만약 평면이 제대로 인지되고 있지 않다면, 높은 위치에 있는 평면과 낮은 위치에 있는 평면의 차이가 드러나지 않는다.
+
+ 
+
+(7) 
+
+평면인지는 잘 되고 있지만, 한 가지 아쉬운 점은 어떤 plane이 현재 감지가 되고 있는지 
+
+그것을 시각적인 피드백으로 확인해 볼 수 없다. 
+
+즉, AR 클라우드가 빠져있다. (point 클라우드)
+
+ 
+
+흔히 말하면 감지된 plane 위에 자잘한 파티클 효과가 생성되면서(화면을 크게 해치지 않는 수준에서)
+
+현재 화면에서 어떠한 것들이 감지가 되었는지를 표현해주는 그러한 파티클 효과가 필요하고,
+
+또는 감지된 표면위에 약간 연한 색의 컬러를 입히는 표면 플레이 게임 오브젝트가 mesh로 표현되어 알 수 있는
+
+ 
+
+무튼 이 둘 중 아무거나, 즉 클라우드가 있어야지 현재 어떤 plane이 감지되고 있는지 알 수 있다. 
+
+ 
+
+ 
+
+(8) 
+
+point 클라우드는 피처 포인트를 표현하는 것으로 피처 포인트라는 것은 
+
+현재 화면에서 대조가 강하고 즉, 기준으로서 삼을만한 지점이 되는 포인트? 
+
+ 
+
+(9)
+
+point 클라우드를 표현하는? 그러한 이펙트를 만들어줘야 하고,
+
+감지된 표면을 따라서 mesh를 생성해주는 그러한 이펙트도 추가해주어야 한다.
+
+ 
+
+그러기 위해서는 AR Session Orgin을 추가한 오브젝트에 AR Point Cloud Manager를 추가해준다.
+
+그래서 추가한  AR Point Cloud Manager의 Point Cloud PreFab에 프리팹을 추가하면 
+
+이 프리팹을 피처 포인트에 생성해줄 것이다.
+
+ 
+
+더하여 AR Plane Manager도 추가해준다.
+
+이 매니저는 감지된 표면을 따라서 그 표면을 표현해줄 프리팹 게임오브젝트를 실시간으로 생성해줄 것이다.
+
+ 
+
+그래서 AR Point Cloud Manager 와 AR Plane Manager에 각각 아무 프리팹이나 할당해줄 수도 있지만 
+
+그러면 너무 복잡?조잡? 비주얼 적으로 올바르게 보이지 않을 것이다.
+
+ 
+
+(10) 
+
+그래서 AR Foundation에서 제공하는 게임 오브젝트들을 사용할 것이다.
+
+하이라키뷰에서 XR에 속해있는 AR Default Plane과 AR Default Point Cloud 게임오브젝트를 생성한다.
+
+ 
+
+AR Default Point Cloud에는 Particle System이 추가되어 있다.
+
+이것을 통제하는 AR Point Cloud와 AR Point Cloud Particle Visualizer도 포함되어 있다.
+
+ 
+
+피처포인트라는 것은 지금 당장에 화면에 잡힌 지점 중에서 특별해 보이는 부분을 따라서 생성되는 효과인데,
+
+다른 말로 하면 화면을 다른 곳으로 돌리는 순간 사라져야 한다.
+
+그래서 그런 기능을 우리가 직접 작성할 수도 있지만, AR Point Cloud와 AR Point Cloud Particle Visualizer들이 해주는 것이다.
+
+ 
+
+AR Default Planed에는 
+
+AR Plane - Destroy On Remova(체크) 가 있다. 
+
+이것은 더 이상 화면상에 존재하지 않을때 파괴된다는 것이다.
+
+ 
+
+그리고 AR Plane Mesh Visualizer은 plane의 Mesh를 감지된 plane의 영역에 맞춰서 자동으로 따라서 만들어 주는 것이다.
+
+만약 이것을 사용하지 않고, 큐브 오브젝트나 plane 오브젝트를 사용해버리면 그냥 감지된 표면의 중앙점에 해당 게임오브젝트가 덜렁 놓여지게 된다.
+
+ 
+
+ 
+
+그래서 생성한 AR Default Plane과 AR Default Point Cloud 게임오브젝트를 프리팹으로 만들어 준다.
+
+하이라키창에서 삭제한다.
+
+ 
+
+이후 다시 AR Session Origin으로 가서 AR Default Plane이 프리팹을 AR Plane Manager 프리팹에 할당해준다.
+
+그리고 AR Point Cloud Manager 프리팹에 AR Default Point Cloud 프리팹을 할당해준다.
+
+ 
+
+그리고 AR Default Point Cloud에 실제로 눈으로 보이는 부분은 파티클 시스템이 다루고 있으므로 
+
+파티클 시스템의 색깔을 변경해주면 색이 다르게 보일 것이다.
+
+ 
     
   
   
