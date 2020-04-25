@@ -364,7 +364,280 @@ public class MoveARWorldPivot : MonoBehaviour
 	}
 }
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+※ 4강. ARPlane의 여러 Type/ ARPlanManager의 이벤트
+
+[1] rayCastmanager.Raycast(touch.position, hits, TrackableType.Planes)
+
+ ▶ TrackableType.(Type) : All, Face, Image 등 다양한 Type이 있는데, 여기서 Plane에 관련된 것들을 주로 많이 사용한다.
+    ● PlaneEstimated : 부정확한 경계(불명확한 경계선)를 가지고 있는 평면을 감지
+    ● PlaneWithinBounds : 실제로 감지된 plane 다각형을 감쌀 수 있는 가장 작은 크기의 직사각형 내의 영역을 감지
+    ● PlaneWithinInfinity : 감지한 평면을 통해서 그것을 확장해서(무한히 확장한다는 가정하에) Raycast를 실행
+    ● PlaneWithinPolygon : 제일 정확한 영역을 측정
+    ● Plans
+    
+    >> 영역의 포함관계( ← 작아짐 ~~~~~ 커짐 → )
+       PlaneWithinPolygon < PlaneWithinBounds < PlaneEstimated < PlaneWithinInfinity
+
+▶ hits : 여기에 저장되는 정보들은 거리순으로 반환이 된다.(제일 작은 거리부터 List에 저장 된다.)
+   
+  'hits[0].pose;' 에서 pose말고 여러 Type들이 있다.
+    
+    ● hits.distance : 카메라의 위치와 광선을 맞은 해당 충돌포인트의 위치 사이의 거리
+    ● hits.hitType : 이 Ray를 맞은 상대방 평면의 Type이 무엇인지 알 수 있음
+    ● hits.sessionRelativeDistance : AR session 공간 내에서의 거리
+
+    >> distance와 sessionRelativeDistance는 다를 수 있다. (그냥 distance는 유니티 Scene 세상에서의 거리를 뜻한다.(즉, 게임 공간상의 거리))
+      왜냐하면 AR Session Origin Obeject를 조정함으로써 OOOOO 다르게 조정할 수 있다, 
+  
+      자세히 설명하자면, AR Session Origin는 World의 중심이 되고, 배열의 중심이 된다.
+      그래서 AR Session Origin의 Object의 크기가 달라지면 Unity 세상에서의 크기와 거리는 변화가 없지만, AR Session 내에서의 측정한 거리는 달라질 수 있다.
+
+   ● hits.sessionRelativePose : 게임 상에서의 pose가 아니라 ARSession Orgin을 기준으로 측정한 pose 정보를 준다.
+   ● hits.trackableId : Ray가 충돌한 대상의 trackable Type인데 그 trackable 타입에 할당된 ID를 갖다준다.
+     >> .trackableId는 특정 tracking이 가능한 Obejct에 대해서만 어떤 코드를 동작시키고 싶을 때 사용할 수 있다.
+         또는 이전에 tracking 했던 것과 지금 tracking 했던 것이 똑같은지도 비교할 수 있다.
+
+[2] Pose hitPose = hits[0].pose; 
+
+▶ Pose Type : 위치, 회전을 3차원 공간에서 나타낸다.
+   ● hitPose.forward : 해당 충돌한 표면의 앞쪽 방향
+   ● hitPose.right : 해당 충돌한 표면의 오른쪽 방향
+   ● hitPose.up : 해당 충돌한 표면의 위쪽 방향
+   ● hitPose.rotation : ....
+   ● hitPose.position : ....
+
+정리하자면 Pose Type은 '충돌한 표면에, 어떤 지점에, 앞쪽, 위쪽, 오른쪽, 회전, 위치' 를 나타내는 Type이다.
+
  
+[3] >>>>> 이 부분 나중에 다시 듣기 <<<<<<<
+
+Raycast를 사용 할 때 주의할 점이 있다.
+
+예를 들어 'arRaycaster.Raycast(touch.position, hits, TrackableType.Planes)'에서 arRaycaster는 TrackableType에 대해서만 감지를 할 수 있다.
+Object에 Collider Component가 추가되어 있다고 해서 Raycast를 사용할 수는 없다.
+
+일반적인 GameObejct에 붙어있는 Collider를 광선으로 감지할려면 이미 존재하는 Physics.Raycast를 사용하면 된다.
+
+다른 말로 하면 (일반적인 - Collider Component가 추가된) GameObejct에서 arRaycaster가 감지되면, 
+GameObject에 가려서 AR 세상에 있는 실제 평면을 감지할 수 없다.
+
+그래서 만약에 AR 앱을 개발했을때, AR를 통해서 생성한 GameObject에게 다시 어떠한 터치를 한다던가 
+광선을 쏜다던가 하면 arRaycaster가 아니라 Physics.Raycast를 사용해야 한다.(Unity의 전통적인 방식의 Raycast를 해야한다.)
+
+
+[4] AR Plane Manager
+
+ 
+
+AR Plane Manager는 여기에 할당된 프리팹을 감지된 평면 위에다가 생성을 하는데, 
+
+중요한 점은 아무거나 할당해도 되지만 되도록 AR Plane 컴포넌트를 가진 프리팹을 할당하는 것이 좋다.
+
+이유는  AR Plane 컴포넌트를 가져야 실제로 해당 평면의 크기에 맞춰서 해당 평면에 감지된 경계선(바운더리)에 맞춰서 자동으로 mesh가 늘어난다.
+
+ 
+
+이것 말고도 생성된 AR Plane이 변화가 생겼을때 또는 새로운 Plane이 감지가 되었을때 그 때 맞춰서 실행되는 이벤트가 있다.
+
+그래서 새로운 평면이 감지되거나 기존 평면이 새로운 변화가 감지되었을때 맞춰서 실행하고 싶은 메소드가 있다면 
+
+그 메소드를 추가할 수 있다.
+
+ 
+
+(5) 
+
+예제로 새로운 평면이 감지될때마다 그 평면에 새로운 게임 오브젝트를 평면위에 랜덤한 지점에 생성해보자.
+
+ 
+
+ 
+
+using UnityEngine.XR.ARFoundation;
+
+ 
+
+public class AddNew : MonoBehavior
+
+{
+
+	
+
+	public GameObject spawnTarget; // 생성할 게임오브젝트의 프리팹
+
+	public ARPlaneManager arPlaneManager; // ARplaneManager를 변수로 받아와야지 접근해서 사용할 수 있다.
+
+				                   ARplaneManager 이벤트에 우리가 실행하고 싶은 메소드를 등록을 하면 된다.
+
+	
+
+	// Key 값 : TrackableId >> Plane을 기억하기 위해 사용해야 한다.(이전에 생성된)
+
+	// 만약에 여러 개의 게임 오브젝트를 새로 생성된 AR Plane인 위에다가 생성했다면
+
+	// 아마, 게임오브젝트를 위한 리스트나 배열형태가 value값으로 들어갓을테지만
+
+	// 그런데 그것이 아니고 새로 생성된  AR Plane이 하나당 게임 오브젝트 하나만 생성하므로 
+
+	// 리스트나 배열이 아니고 , 게임오브젝트 자체를 value값으로 쓰면 된다.
+
+	private Dictionary<TrackableId, GameObject> spawnedObjects;
+
+ 
+
+ 
+
+ 
+
+	void Start()
+
+	{
+
+		arPlaneManager.planesChanged += SpawnObjects; // 이벤트 등록
+
+	}
+
+ 
+
+ 
+
+ 
+
+ 
+
+	// 등록하고자 하는 메소드(public이든 private이든 상관없다.)
+
+	//  ARPlaneManager는 어떠한 메서드를 주로 쓸 수 있냐면 입력으로 ARPlanesChangedEventArgs를 받을 것이다.
+
+	// ARPlanes이 바뀌었을때 발생한 파라미터 값들을 챙길 수 있다.
+
+	// ARPlaneManager가 args(데이터 컨테이너)에 '새로 추가된 평면의 명단, 이미 존재햇지만 평면이 갱신된 명단, 존재했다가 삭제되어 버린 명단'을 넣어줄 것이다.
+
+	private void SpawnObjects(ARPlanesChangedEventArgs args)
+
+	{
+
+ 
+
+		// "새로 추가된 plane이 대응되는"
+
+ 
+
+		// 우리가 하고 싶은 건 새로 추가된 평면에 대해서만 생성하는 것이므로
+
+		List<Applane> addedPlanes = args.added;  // added : 새로 추가된 평면의 타입/ removed : 있다가 삭제된 친구들/ updated : 있었는데 형태나 모양같은 것이 변경되 친구들
+
+ 
+
+		if(addedPlanes.Count > 0)
+
+		{	// 순회하면서 planes를 하나씩 생성하면 된다.
+
+			// 랜덤한 지점에 찍기 위해서는 평면의 중앙지점과 경계선도 알아야 한다.
+
+			foreach(ARPlane plane in addedPlanes)
+
+			{
+
+				// 위치 
+
+				Vector3 spawnPosition = plane.center 
+
+					+ plane.boundary[0].x + plane.transform.right + plane.boundary[0].y(y는 3차원방향으로 봣을때 plane의 앞쪽방향)
+
+					+ plane.transform.forward;
+
+				// (타켓, 위치, 회전)
+
+				// 여기서 생각해야할 부분은 생성된 AR Plane인 마다 오브젝트를 생성한 다음에
+
+				// 만약에 이미 있던 그 평면이 사라지는 순간에 그 평면에 맞춰 생성했던 오브젝트를
+
+				// 파괴해야 하는 경우도 있다.
+
+				// 이런 경우에는 가장 무식하지만 효과적인 방법은 생성한 게임오브젝트를
+
+				// 그 plane의 자식게임오브젝트로 넣게 되면 
+
+				// 해당 plane의 게임오브젝트가 삭제될때, 자식오브젝트로 넣어놨던 것도 같이 삭제 된다.
+
+				// 아니면 또 다른 좀 더 우아한 방법으로는 
+
+				// 생성된 게임오브젝트들에 연계되어 잇는 AR Plane들을 기억을 해놓았다가
+
+				// 해당 AR Plane이 삭제될 때, 거기에 맞춰 생성한 게임 오브젝트를 파괴하는 방법도 있다. 
+
+				GameObject instance = Instantiate(spawnTarget, spawnPosition, plane.transform.rotation);
+
+				spawnedObjects.Add(plane.trackableId, instance); // 사전에 추가	
+
+			}
+
+		}
+
+ 
+
+		// " 이미 추가되어 잇던 plaen이 지워질때는 "
+
+ 
+
+		// 삭제될 plane정보 저장
+
+		List<Applane> removedPlanes = args.removed;
+
+		// 삭제될 plane count가 0보다 크다면
+
+		if(removedPlanes.Count > 0)
+
+		{	// 순회하면서
+
+			foreach(ARPlane plane in removedPlanes)
+
+			{	// 각각의 removedPlanes에 대응되는 게임오브젝트들을 찾아서 
+
+				GameObject destoryTarget = spawnedObjects[plane.trackableId];
+
+				Destroy(destoryTarget);
+
+			}
+
+		}
+
+ 
+
+		// " 기존 plaen이 변경되는 시점에 다른 것을 추가하고 싶다면 "
+
+ 
+
+		List<Applane> updatedPlanes = args.updated;
+
+ 
+
+		if(updatedPlanes.Count > 0)
+
+		{
+
+			foreach(ARPlane plane in removedPlanes)
+
+			{
+
+				// 상태가 갱신된 평면에 대해서 실행할 어떤 처리
+
+			}
+
+		}
+
+			
+
+	
+
+	}
+
+ 
+
+}
 
 
 
