@@ -626,22 +626,38 @@ public class (Script 파일 이름) : MonoBehavior
     // ARTrackedImageManager가 모든 일을 하므로 사용자는 '무엇을 할까?' 행동에 해당하는 것만 함수로 만들어서 이벤트에 등록하면 된다.
     void OnTrackedImageChanged(ARTrackedImageChangedEvent Args args)
     {
-   	args.added
-	▶ added : 이제 막 화면에 새로 추가된 AR tracked Image
+   	 List<ARTrackedImage> addedImages = args.added;
+	 List<ARTrackedImage> removedImages = args.removed;
+	 //List<ARTrackedImage> UpdatedImages = args.updated;
 	
+	// addImages에서(새로 추가된 이미지들을) 순회를 하면서
+	foreach(ARTrackedImaged image in addedImages)
+	{
+		
+		// referenceImage는 Library에 등록했던 이미지
+		if(image.referenceImage.name == "logs") // name을 사용한다.
+		{
+			image.gameObject.GetComponent<Renderel>().material.color = Color.red;
+		}
+		
+	}
+	
+	** 정리 **
+	ARTrackedImageChangedEvent Args에 들어오는 ARTrackedImage들은 
+	현실에 있는 이미지를 통해서  ARTrackedImage Manager가 
+	사용자가 할당한 이미지 Prefab을 해당 위치에 대응되는 Scene상의 위치로 이미지 prefab을 생성하고,
+	그 이미지 prefab에  AR Tracked Image를 추가하고, 
+	AR Tracked Image의 생성자에 AR Tracked Image를 생성할 때,
+	이 이미지 prefab이 현실에 어떤 이미지 reference에 대응되는지 정보를 넣어놓는다.
 
 	
-
-	
-    }
-    
-    
-
-
-}
 	
 	** 참고 **
-	
+	AR Tracked Manager가 감지된 현실에서 감지된 이미지 위에 거기에 대응되는 위치에 
+        우리가 등록한 prefab을 생성하고, ARTrackedImage라는 Component를 붙인다.
+    }
+    
+} 	
 	      
 	      
 
