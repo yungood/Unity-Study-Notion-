@@ -18,8 +18,8 @@
    ▶ AR Session Origin에 추가해야 하는 이유 : AR Session Origin이 AR 공간의 기준이 된다.
 
 
-(1) Cube Object를 Prefab으로 만들기(만들고 Hierarchy창에 있는 Cube Object는 삭제)
-(2) Script 파일 생성
+[1] Cube Object를 Prefab으로 만들기(만들고 Hierarchy창에 있는 Cube Object는 삭제)
+[2] Script 파일 생성
 
 [ OOOOOO.cs 파일 ]
 ...
@@ -115,17 +115,17 @@ using UnityEngine.XR.ARSubsystems; // AR Raycast를 사용하기 위해 추가
   }
 
 
-(3) Script를 추가할 Object에 작성한 Script를 추가하고,
+[3] Script를 추가할 Object에 작성한 Script를 추가하고,
     arRaycaster에는 AR Session Origin GameObject를 추가하고,
     spawn prefab(복사할 대상)에는 Cube Object로 생성했었던 prefab를 넣어준다. 
 
 
-(4) 추후 빌드하여 확인해볼 때,
+[4] 추후 빌드하여 확인해볼 때,
     평면인식이 잘 되지 않는다면, 높은 위치에 있는 평면과 낮은 위치에 있는 평면의 차이가 드러나지 않는다.
     평면인식이 잘 된다면, 높은 위치에 있는 평면과 낮은 위치에 있는 평면의 차이를 확실히 알 수 있다.
  
  
-(5) (평면인식이 잘 되고 있는 상황이라면) 한 가지 아쉬운 점은 현재 어떤 Plane이 감지(인식)되고 있는지 시각적인 피드백으로 확인해 볼 수 없다는 것이다.
+[5] (평면인식이 잘 되고 있는 상황이라면) 한 가지 아쉬운 점은 현재 어떤 Plane이 감지(인식)되고 있는지 시각적인 피드백으로 확인해 볼 수 없다는 것이다.
     즉, AR Cloud가 포함되어 있지 않다.(Point Cloud)
     
     예를 들어, 
@@ -146,80 +146,225 @@ using UnityEngine.XR.ARSubsystems; // AR Raycast를 사용하기 위해 추가
     ▶ point Cloud는 피처 포인트를 표현하는 것으로 피처 포인트는 현재 화면에서 대조가 강하고 즉, 기준으로서 삼을만한 지점이 되는 포인트??
     
     더하여 AR Plane Manager도 추가해준다.
-    AR Plane Manager는 감지된 Plane을 따라서 그 Plane을 
+    AR Plane Manager는 감지된 Plane을 따라서 그 Plane을 표현해줄 prefab GameObject를 실시간으로 생성해줄 것 이다.
+
+
+[6] AR Point Cloud Manager와 AR Plane Manager에 각긱 아무 prefab이나 할당해 줄 수도 있지만
+    그러면 너무 복잡하고 비주얼적으로도 올바르게 보이지 않을 것이다.
+    
+    그래서 AR Foundation에서 제공하는 GameObject를 사용할 것이다.
+    Hierarchy창에서 XR에 속해있는 AR Default Plane과 AR Default Point Cloud GameObject를 생성한다.
+    
+    AR Default Point Cloud에는 Particle System이 추가되어 있다.
+    이것을 통제하는 AR Point Cloud와 AR Point Cloud Particle Visualizer도 포함되어 있다.
+    
+    피처포인트라는 것은 지금 당장에 화면에 잡히는 지점 중에서 특별해 보이는 부분을 따라서 생성되는 효과인데,
+    그렇기 때문에 화면을 다른 곳으로 돌리는 순간 사라져야 한다.(그 특별해 보이는 부분에서만 피처포인트가 보여야 하니까)
+    그래서 그런 기능을 AR Point Cloud와 AR Point Cloud Particle Visualizer들이 해주는 것이다.(우리가 직접  기능을 만들 수도 있지만)
+ 
+    ▶ AR Default Plane의 요소 중 'AR Plane - Destroy On Remove (check) 가 있다. 
+      이것은 더 이상 화면상에 존재하지 않을 때 파괴된다는 의미를 가지고 있다.
+    ▶ AR Plane Mesh Visualizer : plane의 Mesh를 감지된(인식된) plane의 영역에 맞춰서 자동으로 따라서 만들어 준다.
+      				  만약 이것을 사용하지 않고 Cube Object나 Plane Obejct를 사용해버리면 그냥 감지된 표면의 중앙점에 해당 GameObject가 덜렁 놓여지게 된다.
 
  
-
-더하여 AR Plane Manager도 추가해준다.
-
-이 매니저는 감지된 표면을 따라서 그 표면을 표현해줄 프리팹 게임오브젝트를 실시간으로 생성해줄 것이다.
-
  
-
-그래서 AR Point Cloud Manager 와 AR Plane Manager에 각각 아무 프리팹이나 할당해줄 수도 있지만 
-
-그러면 너무 복잡?조잡? 비주얼 적으로 올바르게 보이지 않을 것이다.
-
- 
-
-(10) 
-
-그래서 AR Foundation에서 제공하는 게임 오브젝트들을 사용할 것이다.
-
-하이라키뷰에서 XR에 속해있는 AR Default Plane과 AR Default Point Cloud 게임오브젝트를 생성한다.
-
- 
-
-AR Default Point Cloud에는 Particle System이 추가되어 있다.
-
-이것을 통제하는 AR Point Cloud와 AR Point Cloud Particle Visualizer도 포함되어 있다.
-
- 
-
-피처포인트라는 것은 지금 당장에 화면에 잡힌 지점 중에서 특별해 보이는 부분을 따라서 생성되는 효과인데,
-
-다른 말로 하면 화면을 다른 곳으로 돌리는 순간 사라져야 한다.
-
-그래서 그런 기능을 우리가 직접 작성할 수도 있지만, AR Point Cloud와 AR Point Cloud Particle Visualizer들이 해주는 것이다.
-
- 
-
-AR Default Planed에는 
-
-AR Plane - Destroy On Remova(체크) 가 있다. 
-
-이것은 더 이상 화면상에 존재하지 않을때 파괴된다는 것이다.
-
- 
-
-그리고 AR Plane Mesh Visualizer은 plane의 Mesh를 감지된 plane의 영역에 맞춰서 자동으로 따라서 만들어 주는 것이다.
-
-만약 이것을 사용하지 않고, 큐브 오브젝트나 plane 오브젝트를 사용해버리면 그냥 감지된 표면의 중앙점에 해당 게임오브젝트가 덜렁 놓여지게 된다.
-
- 
-
- 
-
-그래서 생성한 AR Default Plane과 AR Default Point Cloud 게임오브젝트를 프리팹으로 만들어 준다.
-
-하이라키창에서 삭제한다.
-
- 
-
-이후 다시 AR Session Origin으로 가서 AR Default Plane이 프리팹을 AR Plane Manager 프리팹에 할당해준다.
-
-그리고 AR Point Cloud Manager 프리팹에 AR Default Point Cloud 프리팹을 할당해준다.
-
- 
-
-그리고 AR Default Point Cloud에 실제로 눈으로 보이는 부분은 파티클 시스템이 다루고 있으므로 
-
-파티클 시스템의 색깔을 변경해주면 색이 다르게 보일 것이다.
+[7] 생성한 AR Default Plane과 AR Default Point Cloud GameObject를 prefab으로 만들어주고, Hierarchy창에서 삭제한다.
+    이후 다시 AR Session Origin으로 가서 AR Default Plane prefab을 AR Plane Manager의 prefab에 할당해준다.
+    그리고 AR Point Cloud Manager의 prefab에 AR Default Point Cloud prefab을 할당해준다.
+    
+   ** AR Default Point Cloud에 실제로 눈으로 보이는 부분은 Particle System이 다루고 있으므로 Particle system의 색깔을 변경해주면 색이 다르게 보일 것이다. 
 
  
     
-  
-  
-  }
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+※ 3강. ARSession LifeCycle / ARSessionOrigin 
+
+ 
+[1] AR Session의 AR Session Component
+
+AR OO?의 LifeCycle을 관리하고, 현재 AR 기기의 상태를 표현해준다.
+
+예를 들어 AR Session Component로 'Place On Plane' Script가 AR 기능이 활성화인지 비활성화인지를 확인할 수 있다.
+>> void Update()
+   {   	
+   	// 현재 상태가 ready가 아니면 그만 중지(멈춤)
+	if(ARSession.state != ARSessionState.Ready) { return; }
+	
+	▶ ARSession.state : 현재 AR Session Object의 상태가 표시(상태는 여러가지가 있다.) 
+   }
+
+
+한 가지 유의할 점은 ARSession.state 값을 '정적필드'로 접근한다는 것을 알고 있어야 한다.  
+
+예를 들어 'public ARSession arSession;'으로 선언한 다음에 이 arSession 변수에 Object를 드래그 앤 드롭하여 연결하거나
+아니면 FIndObjectOfType 같은 것을 통해서 접근하여 사용할 수 없다. 
+
+정리하자면 state라는 필드가 arSession Object에 분명하게 있지만, '접근'은 되지 않는다.
+
+▷ Q. 왜 state값을 정적 필드로 접근하도록 만들었을까?
+   A. AR Session은 무조건 Scene에서 하나만 존재해야 하기 때문이다.
+      일종의 싱글톤 구현과 비슷한 느낌이다.
+      즉, 'public ARSession arSession;'과 같이 별개의 referencef로 참조할 필요 없이(따로 변수를 선언할 필요 없이)
+      즉시 정적필드(ARSession.state)를 통해서 AR 값들의 상태나 정보를 가져올 수 있게 만들어 놓은 것이다.
+
+
+Update()함수에서 실시간으로 ARSession.state를 참조해도 되지만,
+다른 방법으로 현재 AR 기기의 LifeCycle 상태가 변경이 될 때, 그때 맞춰서 실행되는 이벤트 함수가 있다.
+
+예를 들어 ARSession을 구독하고 있다가, 상태가 변경되는 그 순간, 변경된 상태를 알아오는 것이다.
+>> bool IsActive = false; // 선언 
+
+   void Awake()
+   {
+	// ARSession.StateChanged 이벤트에 등록된 Method는 상태가 변할 때마다 자동적으로 실행
+	ARSession.StateChanged += OnStateChanged; // OnStateChanged()함수를 구독시켜준다.
+   }
+
+   void OnStateChanged(ARSessionStateChangedEventARgs args)
+   {
+        ▶ OnStateChanged() method는 ARSessionStateChangedEventARgs 값을 받는 메소드.
+          이러면 매 프레임을 확인할(체크할) 필요 없이 자동으로 state가 변경된 시점에 맞춰서 실행될 것 이다.
+
+	// 현재 state가 변경될 때마다 그 변경된 state를 표시하고 싶다면
+	Debug.Log(args.state); 
+
+
+	// Safety Check 코드(안전장치로)
+	if(args.state == ARSessionState.Unsupported) // 만약 지원이 안 되는 기기에서 이 코드를 실행하고 있다면('Unsupported'말고도 여러가지가 있다.)
+	{
+		Application.Quit(); // 현재 어플리케이션 종료(간단한 예시를 위해서, 이 방법말고 다른 방법으로도 코드를 짤 수 있다.)
+		return; //그리고 바로 return
+	}
+
+	// 변경된 state가 ARSessionState.Ready라면
+	if(args.state == ARSessionState.Ready) 
+	{
+
+		isActive = true;
+	}
+	else
+	{
+
+		isActive = false;
+
+	}
+    }
+
+
+    void Update()
+    {
+
+	if(!IsActive){ return; } // isActive가 false라면 여기서 코드 바로 종료.	
+    }
+
+ 
+
+결론적으로 ARSession의 state와 stateChanged를 통해서 현재 AR 기기의 LifeCycle의 상태를 확인할 수 있고,
+우리가 원하는 OO??상태??에 도달하기 전까지 여러 처리를 할 수 있다.
+그래서 ARSession을 정적으로 사용한다는 말은 실제로 Scene의 Object에 추가되어 있는 AR Session에 접근하여 사용한다는 말이다.
+
+그리고 덧붙이자면, AR Input Manager는 직접적으로 사용할 일이 없을 것이다.
+(ARSession과 AR Input Manager는 자동 생성되는 것으로 둘다 직접적으로 변경하거나 뭐 이런 일은 거의 없을? 것이다.)
+(우리가 직접 무엇을 수정할 일은 거의 없다.)
+
+AR Input Manager는 현재 기기의 pause나 상태에 대한 '입력'을 받아와서 world tracking을 가능하게 만들어 주는 Component이다.
+그래서 AR Input Manager가 없으면 world tracking이 되지 않는다.
+그리고 Scene에서 단 하나만 존재해야 하고, 무조건 하나가 있어야 한다.
+
+(그리고 AR Session의 Attempt Update필드는 체크되어 있으면, AR이 가능한 기기이지만,)
+(아직 AR을 위한 미들웨어 소프트웨어가 깔리지 않았다는 .......)
+
+ 
+
+[2] AR Session Origin(모든 AR 공간상의 GameObject 중심좌표의 기준★)
+
+예를 들어 AR Session Origin의 Scale(크기)을 10배 증가시키면 모든 GameObject의 크기는(AR 공간상에 비치는 크기) 10배 줄어든다.
+즉, 기준이 10배 증가하면 반대로 기준이 아닌 Obejct는 10배 감소한다. (ex. 나는 그대로인데 세상이 10배 늘어난 것. 그래서 나는 상대적으로 10배 줄어든 것.)
+그래서 웬만하면 위치는(Position) 중점에(0,0,0) 두어도 된다.
+
+ ▶ AR Session Origin의 Camera 필드 설명
+    
+    AR Session Origin은 카메라를 밀어낸다.
+    AR Session Origin의 위치를 중심으로 AR 카메라가 현실OO??되는 카메라가 밀려나서 멀리 떨어진다고 생각하면 된다.
+    기준 좌표계에서 카메라가 대응되는 방향으로 밀려나서 세상을 관찰하는 것이다.
+
+ 
+그리고 AR Session Origin은 어떤 GameObject가 현실에 어떤 위치에 대응되도록 보이게 하기 위해서는 자기 자신을(AR Session Origi) 얼만큼 옮겨야 되는지를 알고 있다.
+
+예를 들어 AR Session Origin이 오른쪽으로 5만큼 가게 되면( (0,0,0) -> (5,0,0) )
+모든 Object들은 스스로 위치가 변하지 않은 것 처럼 보이게 된다. 
+그러니까 세상이 오른쪽으로 5만큼 움직이면 나는 가만히 있는데, 나는 상대적으로 세상에 비해서 왼쪽으로 5만큼 움직인것 같은 착각?느낌?이 든다.
+그렇기 떄문에 모든 GameObject들은 Unity 세상 내에서는 그 위치 그대로 있다.
+다만, 모든 Object들이 현실 세상에 대응되어 보았을 때는 그만큼 밀려나서 움직이는 것이다.
+
+그래서 '자기 자신을 얼만큼 옮겨야 되는지를 알고 있다는 말'은 
+AR 앱을 실행시킨 상태에서 앉은 장소나 테이블을 바꿨을때, 사용자의 컨텐츠를 해당 위치에 그대로 옮겨올 수 있다는 얘기이다.
+
+예를 들어 테이블 A에서 게임을 실행시키다 테이블 B로 자리를 옮겼다.
+그러나 테이블 B로 자리를 옮겨도 사용자의 모든 컨텐츠는 테이블 A에 있다.
+그럼 사용자는 게임 속 세상의 좌표는 영향을 받지 않으면서도 단지 그 기준점인 AR Session Origin의 위치만 변경을 해서 모든 세상의 위치가 탁자 B위치로 밀려들어오도록 하고 싶은 것이다.
+
+ 
+◎ 활용예제 : 사용자가 터치한 지점을 AR 세상의 (0,0,0)지점으로 재편성(Obecjt : Capsule → Capsule Object가 터치한 그 위치에 보이도록 World를 통쨰로 옮기는 것)
+>>  Hierarchy창에서 Capsule Object 하나 추가생성(Position : 0,0,2 / Rotation : default 값 유지/ Scale :  0.1, 0.1, 0.1)
+>>  Capsule의 위치는 그대로 (0,0,2)를 유지하면서 사용자가 핸드폰 화면을 터치한 지점을 기준으로 Capsule이 생성되도록 하고 싶다.
+    정리하자면 게임 속(Unity) 세상에서는 계속 (0,0,2)위치인데, 게임 세상 속 자체를 다 묶어서 Capsule이 우리가 터치한 지점의 위치로 밀어내는 것이다. 
+    즉, 게임 내부는 변하지 않고 게임 세상 자체가 통쨰로 Capsuel이 그 위치에 보이도록 밀려나는 것이다.
+
+[ Move AR World Pivot.cs 파일] 
+
+// 어떤 Object가 터치한 장소에 보이게 하려면, '세상 그 자체를' 얼만큼 평행이동해야 할지 알고 그렇게 이동함. //
+
+...
+...
+using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
+
+public class MoveARWorldPivot : MonoBehaviour
+{
+
+	public Transform target; // 이 target을 터치한 지점으로 옮길 것이다.
+
+	public ARRaycastManager rayCastmanager; // 터치한 지점을 알려면 Raycast가 필요하다.
+
+	public ARSessionOrigin arSessionOrigin;	
+
+	private List<ARRaycastHit> hits = new List<ARRaycastHit>(); // Raycast 결과를 담을 리스트
+
+	void Update()
+	{	
+
+		// 터치가 하나도 없으면
+		if(Input.touchCount == 0){ return; } // 즉시 종료
+
+		Touch touch = Input.GetTouch(0); // 0번째 값(제일 첫번 쨰 값)
+
+		// 터치가 감지되었다면(광선이 무엇인가를 향해 닿았다면)
+		   ▶ (터치한 지점의 위치를 기준으로 , Raycast 결과를 받을,  Raycast 할 대상 명시) 	
+		if(rayCastmanager.Raycast(touch.position, hits, TrackableType.Planes))
+		{
+
+			Pose hitPose = hits[0].pose; // 가장 첫번 째 터치 값의 정보
+
+			// (옮기고 싶은 물건(world 자체를 통째로 옮기는 것), 위치 , 회전)
+
+			arSessionOrigin.MakeContentAppearAt(target, hitPose.position, hitPose.rotation);
+
+			▶ MakeContentAppearAt Method 
+			  : 목표 taget Contents를 원하는 지점에 보이게 하기 위해
+			    세상을 얼만큼 평행이동 시켜야 하는지를 알고, 실제로 평행이동 시키는 Method.
+			    ( World 좌표 내의 Object들 스스로는 변함이 없다.)
+			    ▶ target : 옮기고 싶은 target(world 자체를 통째로 옮기는 것)
+			    ▶ hitPose.position : 위치
+			    ▶ hitPose.rotation : 회전
+
+		}
+	}
+}
+
+ 
+
 
 
