@@ -539,5 +539,110 @@ public class AddNew : MonoBehavior
    }
 }
 
+----------------------------------------------------------------------------------------------------------------------------------------
+
+※ 5강. Plane 외곽선 Type과 엠비언트 라이팅 >>> 강의 보면서 공부하기(따라하기)
+※ 6강. 이미지 기반 트래킹
+
+[1] AR Session Origin 
+    ▼ AR Carmera
+    
+ ▶ AR Camera Background Component 
+    : 사용자의 카메라에서 Texture를 가져와서 사용자의 Scene 배경을 그려준다.
+      그래서 만약 AR Camera Background Component가 없다면 다른 기능(ex. 표면 인식 등)은 잘 동작하지만
+      현실 화상이 사용자의 게임 화면 뒤에 비치지 않을 뿐이다.
+      그래서 기본적으로 그냥 사용하면 된다.
+      
+      
+[2] 2D 이미지 기반 트래킹 
+   
+'AR 상에서 사용자가 미리 지정한 이미지가 감지되었을 때 또는 감지된 이미지의 변화가 생겼을 때의 위치,이미 감지된 이미지가 삭제됬을 때'의 경우를
+ 이벤트를 사용해서 알 수 있고, 감지된 이미지 위에 새로운 GameObject를 생성할 수 있는 등의 처리를 뜻한다.
+     
+<1>  아무것도 없는 상태에서 이미지 트래킹을 할 수 없다.
+     우리가 트래킹할 이미지가 무엇인지에 대한 Library가 미리 만들어져 있어야 한다.
+     그래야 그 만들어진 Library와 대조하여 해당 이미지 위에 무엇인가를 만들 수 있다.
+     그래서 가장 먼저 해야할 일은 '이미지 Library'를 만들어야 한다.
+     
+     (1) 사용할 이미지를 Project에 Import 한다.
+     (2) 그리고 그 이미지로 구성된 Library를 만들어야 한다.
+         >> Tip : 어떤 이미지든 상관없지만, 가능하면 잘 구별 할 수 있는(특징이 있는) 이미지이면 좋다.
+     (3) Project창 → 마우스 오른쪽 버튼 → Create → XR reference 
+     (4) 생성된 XR reference의 Add Image에 사용할 이미지를 등록한다.
+     (5) 이미지 Library 생성완료
+     
+      ▶ XR reference
+      	 ● Name : 코드상에서 이미지들을 어떻게 인식할지 필요한 구분자
+         ● Specify Size : 사용할 이미지가 현실에 어떤 크기에 대응되는지를 직접 명시할 수 있다.(활성화/비활성화는 자유, 필수는 아님)
+	   >> 활성화하게 되면 현실의 Meter 단위로 크기를 지정할 수 있다. 
+	      즉, 그 크기에 맞는 이미지를 좀 더 잘 트래킹 할 수 있다.
+	      예를 들어 설정하게 된다면 이미지를 트래킹 할 때, 같은 형상을 가지고 있다고 해도 Specify Size에 설정한 크기와 비슷한 이미지를 트래킹하게 된다.
+	 ● Keep Texture at Runtime : 이 Texture를 Runtime(앱이 실행되고 있는 도중에) 메모리에 진채로? 메모리에 접근해서 사용할 수 있다.
+	   >> 활성화하지 않아도 이미지는 감지된다. 
+	      그러나 활성화한다면 '이미지 감지'에 더하여 우리가 감지용으로 사용할 이미지를 코드로 데려와서 무엇인가를 더 수용할 수 있다.
+	
+	
+<2>  AR Session	Origin Object로 가서 AR 이미지 트래킹을 위한 Component를 추가해주어야 한다. (AR Tracked Image Manager Component 추가) 
+ 
+     ● Referene Library : reference로 사용할 Library(먼저 만들어놓았던 이미지 Library)를 추가
+     ● Max Number Of Moving Images : 이미지가 해당 위치에 있는 것이 아니라 계속 이미지가 이동하게 될 경우에 
+                                     이 값을 늘려서 계속 위치가 변하는 이미지도 트래킹할 수 있도록 이미지를 만들어 주어야 한다.
+				     다만, 이 같은 경우는 Max Number Of Moving Image를 늘렸을 때, 모든 기기에서 지원하는 것은 아니다.
+	>> 값을 default 값(0)으로 유지한다고 해서 트래킹이 되지 않는 것은 아니지만, 움직이는 이미지에 대해서는 트래킹이 되지 않을 수 있다.
+     ● Tracked Image Prefab : 트래킹된 이미지 위에 생성할 Prefab
+       >> 감지된 이미지 위에 생성할 prefab을 만들어주고 추가해준다.
+       
+     
+     트래킹 이미지 위에다가 이미지 prefab을 생성할 뿐만 아니라 이벤트를 가지고 있어서 
+     '새로운 이미지가 감지되거나, 기존 이미지가 삭제되거나, 이미 감지된 이미지에 변동사항이 생겼을 때(화면상의 현실에서의 이미지)'등 
+     이럴 때 실행되는 이벤트가 있어서 이러한 상황에 맞춰서 무엇인가를 실행할 수 있다.
+     
+     
+        
+◎ 활용 예제 : 감지된 이미지에 종류에 따라서 사용자가 설정했던 이미지 prefab에 색깔이 다르게 나오도록 해보자.
+
+[ OOOOOOO.cs 파일 ]
+...
+...
+using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
+
+public class (Script 파일 이름) : MonoBehavior
+{
+    // 이벤트를 가지고 있는 AR Image Manager를 가져온다.
+    public ARTrackedImageManager trackedImageManager;
+    ▶ ARTrackedImageManager : '이러한 이미지가 감지되었는데, 어떤 행동을 할까?'라고 물어본다.
+       >> 즉, 이미지를 감지하고 , 해당 위치를 가져오고, 그 이미지의 정보를 가져오는 모든 일을 한다.
+    
+    void Start()
+    {
+        // ARTrackedImageManager의 이벤트 중 trackekdImagesChanged가 있다.
+	// 이미지들에 대해 변경사항이 생겼을 때 실행할 함수 등록.
+    	trackedImageManager.trackekdImagesChanged +=
+	
+	▶ trackekdImagesChanged : 트래킹 중 이미지들에 대해 변경사항이 생겼을 때 여기에 맞춰서 실행되는 이벤트.
+    }
+    
+    // ARTrackedImageManager가 모든 일을 하므로 사용자는 '무엇을 할까?' 행동에 해당하는 것만 함수로 만들어서 이벤트에 등록하면 된다.
+    void OnTrackedImageChanged(ARTrackedImageChangedEvent Args args)
+    {
+   	args.added
+	▶ added : 이제 막 화면에 새로 추가된 AR tracked Image
+	
+
+	
+
+	
+    }
+    
+    
+
+
+}
+	
+	** 참고 **
+	
+	      
+	      
 
 
