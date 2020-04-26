@@ -1,3 +1,31 @@
+
+※ 1강. AR Foundation 개발 환경 준비
+
+▶ AR Session : 현재 AR app의 LifeCycle을 관리하고, 현재 LifeCycle이 어디에 해당되는지 다른 AR Object들에게 알려준다. 
+		따라서 AR Session이 없으면 AR이 동작하지 않는다.
+		모든 AR Foundation Scene에는 AR Session GameObject가 하나 존재해야 한다.
+		>> AR LifeCycle :  AR 기능이 동작하고 종료할떄까지의 흐름
+		
+▶ AR Session Origin :  AR 세상의 중심이 된다,
+			Scene상에 있는 모든 GameObject는 일단 원점을 기준으로 움직이지는 않는다.
+			즉, 카메라를 움직일 때 GameObject가 움직이는 것이 아니라 카메라가 움직이는 것이다.(당연한 이야기)
+
+			사용자가  AR app을 사용했을 때, 현재 위치에 따라서 Object가 다르게 보인다.(위치에 따라서 존재하는 Objecr가 다르다.)
+			하지만 게임 세상에 있는 Object 스스로는 자기가 가만히 있다고 생각한다.(세상에 존재하는 카메라가 움직이게 되는 것이다.) 
+
+			그리고 Scene에 존재하는 모든 GameObject들은 AR session Origin Component를 가지고 있는 Object를 중심으로 편셩된다.
+			즉, AR Session Origin에 변경사항이 생긴다면 상대적으로 GameObject들은 자기가 변경되었다고 느끼지는 않지만,
+			(AR Session Origin을 기준으로 했을 때는 변화가 없기 떄문에)
+			AR Session Origin의 영향을 받아서 커지거나 줄어들기 떄문에 크기나 위치가 달라보이게 되는 것이다. 
+  ▼ AR Camera : AR Session Origin의 자식으로 AR Camera가 있다.
+		이 AR Camera가 움직있는 Camera이다.(게임 세상 속에서)
+		이 카메라는 사용자의 핸드폰에 있는 Camera와 대응된다고 보면 된다.
+
+		핸드폰의 위치, 각도 등의 정보를 받아와서 현재 AR Session을 중심으로 AR Camera를 상대 위치로 밀어내버린다.(자동으로)
+		즉, 모든 GameObject들은 그 자리에 그대로 있지만, 이 AR Camera가 움직임으로써 Object들이 다른 모습으로 보이게 되는 것이다.
+
+---------------------------------------------------------------------------------------------------------------------------------
+
 ※ 2강. AR Scene의 필수 Component를 사용 / AR Raycast를 통해 Object 생성
 
 ◎ 활용예제 : 지면(표면)을 감지하고 감지된 지면(표면)에 원하는 Object를 터치로 배치
