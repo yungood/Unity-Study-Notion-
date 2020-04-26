@@ -153,9 +153,21 @@ using UnityEngine.XR.ARSubsystems; // AR Raycast를 사용하기 위해 추가
        // Instantiate Method를 통해서
        Instantiate(spawnPrefab, hitPose.position, hitPose.rotation);
        
-       ▶ spawnPrefab : 생성할 복제본
-       ▶ hitPose.position : 생성할 위치(충돌위치)
-       ▶ hitPose.rotation : 충돌 각도(회전방향)    
+       
+       ▶ Instantiate() : 게임을 실행하는 도중에 GameObject를 생성할 수 있다. (3개의 매개변수를 가지고 있다.)
+          >> 게임이 실행되기 전에 GameObject를 미리 만들어 놓을 수 있지만, 사실상 그것은 불가능하다.
+	     (출처: https://codingmania.tistory.com/166 [괴발개발 개발새발 하는 개발자의 개발 블로그])
+	     만약, RPG 게임이라면 수많은 아이템, 캐릭터, 배경등 모든것들을 어떻게 미리 만들어놓을 것 인가?
+	     만약, 총을 쏘는 게임이라면 그 수많은 총알을 어떻게 미리 만들어 놓을 것 인가? 
+	     미리 만들어 놓는다는 것은 말도 안된다. 이럴 때는 게임 중에 게임오브젝트를 생성해야할 것이다.
+	     즉, 생성이 아니라 해당 게임오브젝트의 복제본을 생성한다고 하는 것이 정확할 것이다.
+	     
+	     ● spawnPrefab : 생성할 복제본 >> 생성하고자 하는 GameObject명, 현재 Scene에 있는 GameObject나 Prefab으로 선언된 객체.
+             ● hitPose.position : 생성할 위치(충돌위치) >> Vector3으로 생성될 위치를 생성한다.
+       	     ● hitPose.rotation : 충돌 각도(회전방향) 
+	       >> 생성될 GameObject의 회전값을 지정한다.
+	          회전을 굳이 줘야할 상황이 아니라면, 그냥 기본값으로 설정한다. (ex.Instantiate(spawnPrefab, hitPose.position, Quaternion.identify) → 회전없음 )
+		  또는 GameObject에서 설정된 회전값으로 설정해도 된다.(ex.Instantiate(spawnPrefab, hitPose.position, hitPose.rotation) → Obejct의 회전값 )	     					
     }
   }
 
