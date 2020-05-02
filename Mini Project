@@ -1,0 +1,369 @@
+
+//** < 문제1 Scene > **//
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI; // UI 사용하기 위해
+using UnityEngine.SceneManagement; // 씬 전환하기 위해
+
+public class UseExamData1 : MonoBehaviour
+{
+
+    // ** ScriptableObject ** //
+    public ExamData EData; // ScriptableObject 상속받은 ExamData 사용위해
+    public SpriteData sprtiedata3; // ScriptableObject 상속받은 Sprite.Data 사용 위해
+
+    // ** UI ** //
+    //Button
+    //public Button Out;  // '나가기' 버튼(기능 : 메인화면으로)
+    public Button Hint; // '힌트' 버튼(기능 : 힌트 팝업창 생성)
+    public Button Right; // 'O' 버튼
+    public Button Wrong; // 'X' 버튼
+    public Button Next; // '다음' 버튼
+   
+    //Text
+    public Text EText; // 문제(ex.1.예비초등학생의.....)
+    public Text PHint; // 힌트예고 텍스트("5초 뒤에 힌트가 나와요!")
+    public Text EHint; // 문제에 대한 힌트 텍스트
+    public Text NoText; // 문제를 풀지 않았다는 경고 텍스트
+
+    //Image
+    public Image Exam1Bg; // ExamScene1의 Background이미지
+    public Image Exam1Board; //ExamScene1의 ExamBoard이미지
+    public Image Exam1Method; //ExamScene1의 ExamMethod이미지
+    public Image Exam1HIntBoard; //ExamScene1의 ExamHIntBoard이미지
+    public Image Exam1Warn; //ExamScene1의 ExamWarn이미지
+
+
+
+    // ** GameObject ** //
+    //public GameObject PHText; // 힌트예고 텍스트 오브젝트
+    public GameObject HintButton; // 힌트 버튼 오브젝트
+    public GameObject EHPImage; // 힌트 이미지(ExamHintimage)오브젝트
+    public GameObject NoImage; // 경고 이미지 오브젝트
+
+    // ** Delegate ** //
+    public delegate void HintDelegate(); // 힌트관련 동작을 대신 불러주는 delegate
+    HintDelegate HintDel;
+
+    public delegate void NoDelegate(); // '문제를 풀지 않았어요! 그래서 다음 문제로 이동할 수 없어요!' 경고 동작을 대신 불러주는 delegate
+    NoDelegate NoDel;
+
+
+    // ** 전역변수 int(문제와 관련된 모든 스크립트에서 사용하기위해) ** //
+    static public int i= 0; //list에 사용할 인덱스
+
+
+    //** bool **//
+    public bool Check; // 사용자가 답을 선택했는지 확인하기 위해(O 또는 X를 선택했는지)
+
+
+
+    // ** Awake() ** //
+    void Awake()
+    {
+        //모두 비활성화로 시작
+        //PHText.SetActive(false); // 힌트예고("5초 뒤에 힌트가 나와요!")
+        HintButton.SetActive(false); // 힌트버튼
+        EHPImage.SetActive(false); // 힌트이미지
+        NoImage.SetActive(false); // No이미지("문제를 풀지 않았어요!")
+    }
+
+
+    // ** Start **//
+    // Start is called before the first frame update
+    void Start() // 초기화(문제 1부터 시작)
+    {
+        FirstSetting();
+        ButtonSetting();
+    }
+
+    private void FirstSetting()
+    {
+        Check = false; // 처음에는 false(사용자가 문제를 풀지 않았으므로)
+        EData.UserCount = 0; // '처음에는 0(사용자가 문제를 풀지 않았으므로)
+
+        Exam1Bg.sprite = sprtiedata3.ASD[0].ExamBackground_Image; // 문제 Scene 배경이미지
+        Exam1Board.sprite = sprtiedata3.ASD[0].ExamBoard_Image; // 문제 칠판 이미지
+        Exam1Method.sprite = sprtiedata3.ASD[0].ExamMethod_Image; // 문제 설명 이미지
+        Exam1HIntBoard.sprite = sprtiedata3.ASD[0].ExamHintBoard_Image; // 문제1번~6번 HInt 내용 이미지
+        Exam1Warn.sprite = sprtiedata3.ASD[0].ExamWarn_Image; // 문제 경고창 이미지("문제를 풀지 않았어요!")
+
+        EText.text = EData.AExam[i].ExamText; // 문제1번 텍스트 불러오기
+
+        //힌트관련 동작을 대신 호출하는 Delegate(각 Scene에서 한번씩만 호출할거라서 Start()함수에 사용, Update()함수에서 사용하면 매 프레임마다 실행 -> 노놉!)
+        HintDel = HintPrev; // Delegate로 대신 호출할 HintPrev함수 delegate에 추가
+        HintDel(); // Delegate함수 호출   
+
+        //경고 팝업창 동작을 대신 호출하는 Delegate
+        NoDel = NoNext; // Delegate로 대신 호출할 NoNext함수 delegate에 추가
+    }
+
+    private void ButtonSetting()
+    { 
+        // '다음'버튼 클릭하면 //
+        Next.onClick.AddListener(() =>
+        {
+            if (Check == true) // 사용자가 답을 선택했으면(문제를 풀었으면)
+            {
+                SceneManager.LoadScene("ExamScene2"); // 다음 문제로 이동한다.
+            }
+            else // (사용자가 문제를 풀지 않았으면)
+            {
+                NoDel(); // 경고 팝업 창 Delegate 실행.
+            }
+        });
+
+        Right.onClick.AddListener(() =>
+        {
+            /*
+             원래 계획은 'Count++'하여 'Count = 0' 에서 'Count = 1'로 증가하는 것이었지만,
+             Update()함수에서 실행하므로 1프레임마다 실행하여
+             'Count = 0' 에서 'Count = 526'이 된다. 
+             그래서 'EData.UserCount = 1'로 변경하였다.
+            */
+
+            EData.UserCount = 1; // '사용자가 1번 문제를 풀었다'
+            EData.UCheck[i].UserAnswer = true; // 사용자가 선택한 답을 리스트에 저장
+            Check = true; // 사용자가 'O'를 선택했다.
+        });
+
+        // 'X' 버튼 클릭하면 //
+        Wrong.onClick.AddListener(() =>
+        {
+            EData.UserCount = 1; // '사용자가 1번 문제를 풀었다' -> count는 +1 증가(count 초기값 0부터 시작)
+            EData.UCheck[i].UserAnswer = false; // 사용자가 선택한 답을 리스트에 저장
+            Check = true; // 사용자가 'X'를 선택했다.
+        });
+
+    }
+
+    // ** 힌트 예고 ** //
+    void HintPrev() 
+    {
+        //힌트예고 오브젝트 활성화
+        //PHText.SetActive(true);
+        //PHint.text = EData.PrevHint; //힌트예고("5초뒤에 힌트가 나와요")
+
+        StartCoroutine("HintUser"); //HintUser 코루틴 실행
+    }
+    // ** Coroutine ** //
+    // 문제 시작 후 5초뒤에 힌트 버튼 활성화(+ 힌트내용도 활성화) 
+    IEnumerator HintUser() // 해당 문제에 대한 힌트
+    {
+        //5초 뒤에
+        yield return new WaitForSeconds(5f);
+
+        //힌트예고 오브젝트 비활성화, 힌트 버튼 오브젝트 활성화
+        //PHText.SetActive(false);
+        HintButton.SetActive(true);
+
+        //힌트 버튼 클릭하면
+        Hint.onClick.AddListener(() =>
+        {
+            EHPImage.SetActive(true); //힌트 이미지 활성화
+            HintButton.SetActive(false); // 힌트 버튼 비활성화
+            EHint.text = EData.AExam[i].ExamHint;
+        });
+        
+        //3초 뒤에
+        yield return new WaitForSeconds(3f); 
+
+        //다시 힌트 버튼, 내용 오브젝트들 비활성화
+        //HintButton.SetActive(false);
+        EHPImage.SetActive(false);
+    }
+
+
+    // ** 문제 풀지 않았다는 경고 **//
+    void NoNext()
+    {
+        NoImage.SetActive(true); //NoImage(" ")
+        NoText.text = EData.No;
+
+        StartCoroutine("NoUser"); //NoUser 코루틴 실행
+    }
+    // ** Coroutine ** //
+    // 팝업 창 띄우고 3초 뒤에 닫음.
+    IEnumerator NoUser() // 경고 팝업 창
+    {
+        //3초 뒤에
+        yield return new WaitForSeconds(3f);
+
+        NoImage.SetActive(false);//NoImage(" ")
+    }
+
+
+    // ** Update ** //
+    // Update is called once per frame
+    void Update()
+    {
+        /*
+        // '나가기' 버튼 클릭하면 메인화면으로 이동(Scene 이동)
+        Out.onClick.AddListener(() =>
+        {
+            // 초기화(문제 풀기 시작 전 : 모든 문제 선택X)
+            for (int i = 0; i < UseExamData1.i + 6; i++)
+            {
+                EData.UCheck[i].UserAnswer = false;
+            }
+            // 사용자가 총 몇 문제를 풀었는지 = 0개
+            EData.UserCount = 0;
+            SceneManager.LoadScene("MainScene"); //메인화면으로 이동
+        });
+        */
+
+        // 사용자는 'O'버튼 아니면 'X'버튼을 클릭한다. 
+        // 'O' 버튼 누르면
+
+        if (Input.GetKeyDown(KeyCode.A))
+        { 
+        
+        }
+
+
+        // '다음'버튼 클릭하면 //
+        /*
+        Next.onClick.AddListener(() =>
+        {
+            if(Check == true) // 사용자가 답을 선택했으면(문제를 풀었으면)
+            {
+                SceneManager.LoadScene("ExamScene2"); // 다음 문제로 이동한다.
+            }
+            else // (사용자가 문제를 풀지 않았으면)
+            {
+                NoDel(); // 경고 팝업 창 Delegate 실행.
+            }
+        });
+        */
+    }
+}
+
+
+
+------------------------------------------------------------------------------------------------------------------
+
+//** < 해설 Scene > **//
+
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI; // UI 사용하기 위해
+using UnityEngine.SceneManagement; // 씬 전환하기 위해
+
+public class Comment : MonoBehaviour
+{
+    //** ScriptableObject **//
+    public ExamData ExamData2; // ScriptableObject 상속받은 ExamData 사용위해(각 문제에 대한 정답 데이터 사용 위해)
+    public SolveData SolveData2; // ScriptableObject 상속받은 SolveData 사용위해(문제해설관련 데이터 사용 위해)
+    public SpriteData sprtiedata10; // ScriptableObject 상속받은 Sprite.Data 사용 위해
+
+    //** UI **// 
+    //Text
+    public Text AText; // 정답 텍스트
+    public Text CText; // 해설 텍스트
+    public Text EText; // 문제 텍스트
+    public Text SText; // 보충설명 텍스트
+
+    //Button
+    public Button EButton; // 문제버튼
+    public Button SButton; // 보충설명 버튼
+    
+    public Button CButton; // X버튼(이전화면으로 이동)
+    public Button ECButton; // 문제Image의 X버튼
+    public Button SCButton; // 보충설명Image의 X버튼
+  
+
+    //Image
+    public Image CommentBg; // CommentScene의 Background이미지
+    public Image CExplainBg; // CommentScene의 해설 Background이미지
+    public Image CEPopUp; // CommentScene의 문제 팝업창 이미지
+    public Image CSPopUp; // CommentScene의 보충설명 팝업창 이미지
+
+
+    //** GameObject **//
+    public GameObject EImage; // ExamImage 오브젝트 찾기(문제 보여주는..)
+    public GameObject SImage; // SupportPanel 오브젝트 찾기(보충설명 보여주는..)
+
+
+    //** Awake 함수 **//
+    void Awake()
+    {
+        // Image 처음에는 비활성화
+        EImage.SetActive(false); //문제 보여주는
+        SImage.SetActive(false); //보충설명 보여주는
+    }
+
+
+    //** Start 함수 **//
+    // Start is called before the first frame update
+    void Start()
+    {
+        //*** 이미지 불러오기 ***//
+        CommentBg.sprite = sprtiedata10.ASD[0].LastBackground_Image; // LastScene 배경이미지와 동일한 이미지 사용
+        CExplainBg.sprite = sprtiedata10.ASD[0].CEBackground_Image; // LastScene의 CommentBackgroundImage(해설 배경화명 이미지)
+        CEPopUp.sprite = sprtiedata10.ASD[0].CEPopUp_Image; // 팝업 창 이미지
+        CSPopUp.sprite = sprtiedata10.ASD[0].CSPopUp_Image; // 팝업 창 이미지
+
+        EButton.image.sprite = sprtiedata10.ASD[0].CEButton_Image; // 문제버튼 이미지
+        SButton.image.sprite = sprtiedata10.ASD[0].CSButton_Image; // 보충설명버튼 이미지
+
+        //** ACText() 함수 불러오기 **//
+        ACText(); // 정답 불러오기
+
+       
+        //** 문제 버튼 **//
+        //문제 버튼 클릭하면 현재 화면에서 보여주는
+        //해설에 해당하는 문제 보여주기
+        EButton.onClick.AddListener(() =>
+        {
+            EImage.SetActive(true);
+            EText.text = ExamData2.AExam[CommentBut1.cb].ExamText; // 문제
+        });
+        // 문제 이미지의 X버튼 클릭하면 문제 이미지 창 닫기
+        ECButton.onClick.AddListener(() =>
+        {
+            EImage.SetActive(false);
+        });
+
+        //** 보충설명 버튼 **//
+        SButton.onClick.AddListener(() =>
+        {
+            SImage.SetActive(true);
+            SText.text = SolveData2.ASolve[CommentBut1.cb].AddText; // 보충 설명
+        });
+        // 보충설명 이미지의 X버튼 클릭하면 보충설명 이미지 창 닫기
+        SCButton.onClick.AddListener(() =>
+        {
+            SImage.SetActive(false);
+        });
+
+        
+        //** X 버튼 **//
+        // X버튼 클릭하면 이전화면으로 돌아가기(이전화면 : LastScene)
+        CButton.onClick.AddListener(() =>
+        {
+            SceneManager.LoadScene("LastScene"); //이전화면으로 이동
+        });
+
+        //Debug.Log(CommentBut1.cb);
+    }
+
+
+    //** 각 문제에 해당하는 정답과 해설 불러오기 함수 **//
+    void ACText() // (Answer + Comment)
+    {
+        if (ExamData2.AExam[CommentBut1.cb].ExamAnswer == true) // 1번 문제에 대한 정답이 true이면
+        {
+            AText.text = "O";
+        }
+        else if (ExamData2.AExam[CommentBut1.cb].ExamAnswer == false) // 1번 문제에 대한 정답이 false이면
+        {
+            AText.text = "X";
+        }
+
+        CText.text = SolveData2.ASolve[CommentBut1.cb].SolveText; // 1번 문제에 대한 해설. 
+    }
+}
