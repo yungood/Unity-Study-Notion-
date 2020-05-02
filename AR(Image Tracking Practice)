@@ -1,0 +1,227 @@
+※ Image Tracking Practice(https://www.youtube.com/watch?v=o_z_Eb8Yh2g 참고)
+
+예제 실습) 트래킹 된 이미지에 해당 프리팹(큐브 오브젝트) 생성
+          (트래킹을 하고 있지 않으면 생성된 프리팹 사라짐)
+          
+          
+▶ Hierarchy창
+  □ AR Session
+    - Transform
+    - AR Session(Script)
+    - AR Input Manager(Script)
+  □ AR Session Origin
+    - Transform
+    - AR Session Origin
+    〓 AR Tracked Image Mangaer
+        = Serialized Library : 생성한 ReferenceImageLibrary 추가
+        = Max Number Of Moving IMages : 1 (이 예제에서는 별로 중요하지 않은 느낌?)
+        = Tracked Image Prefab : 이미지에 생성할 Prefab 추가
+    〓 Trackeded Image Info Manager(Script 파일)
+        = Tracked Image_Text : Canvas > Text 추가(이 예제에서 중요하지 않음. 해도 되고 안 해도 된다.)
+    □ AR Camera
+      - 기존 추가되어 있는 Component들(새로 추가한 Component 없음)
+      
+      
+      
+▶ Trackeded Image Info Manager.cs(Script 파일)
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;  // UI 사용 위해
+using UnityEngine.XR.ARFoundation; // ARFoundation 사용위해(AR 관련 중요한 Component들 선언되어 있음)
+using UnityEngine.XR.ARSubsystems; // ARSubsystem 사용위해(부가적인 편의 기능들이 선언되어 있음) 
+
+
+
+// ★ RequireComponent :특정 Component 자동으로 추가 요청(Add component하지 않아도 자동으로 오브젝트에 추가)
+//   > 장점 : 스크립트를 실행하는데 꼭  필요한 Component가 없는 상태로 실행되는 오류를 사전에 막을 수 있도록 응용할 수 있다. 
+[RequireComponent(typeof(ARTrackedImageManager))] // ARTrackedImageManager 컴포넌트 요청
+
+
+
+public class TrackekdImageInfoManager : MonoBehaviour
+{
+    //**  ARTrackedImageManager 사용 **//
+    ARTrackedImageManager m_TrackedImageManager;
+
+
+    //** UI**//
+    // Text
+    //public Text trackedImage_Text; // trackedimage.name 나타내기 위해
+
+
+
+
+    //** Awake() 함수 **//
+    void Awake()
+    {
+        m_TrackedImageManager = GetComponent<ARTrackedImageManager>();   // <ARTrackedImageManager>() 컴포넌트를 가져온다.
+        m_TrackedImageManager.trackedImagePrefab.SetActive(true);  // 이미지 트래킹을 하고 있지 않으면 생성된 프리팹이 비활성화어야 하므로(처음에는 활성화)
+    }
+
+    
+    
+    
+    //** OnEnable() 함수 **//
+    void OnEnable()
+    {
+        // ★ trackedImagesChanged : 트래킹 중 이미지들에 대해 변경사항이 생겼을때 여기에 맞춰서 실행되는 이벤트
+        // trackedImagesChanged에 OnTrackedImagesChanged 함수 등록
+        m_TrackedImageManager.trackedImagesChanged += OnTrackedImagesChanged;   
+    }
+
+
+
+
+    //** OnDisable() 함수 **//
+    void OnDisable()
+    {
+        // trackedImagesChanged에 OnTrackedImagesChanged 함수 해제
+        m_TrackedImageManager.trackedImagesChanged -= OnTrackedImagesChanged;
+    }
+
+
+
+
+    //** OnTrackedImagesChange() ← trackedImagesChanged 이벤트에 등록한 함수  **//
+
+    // ★ ARTrackedImagesChangedEventArgs 에는 ARTrackedImage Manager가 
+    //    사용자가 할당한 이미지 Prefab을 현실에 대응되는 위치에 생성하고 
+    //    현실에 어떤 이미지에 대응되는지 정보도 함께 들어있다.
+
+    void OnTrackedImagesChanged(ARTrackedImagesChangedEventArgs eventArgs)
+    {
+        // ★ add : 새로운 이미지를 발견하고, '새로운 이미지를 발견했습니다.' 고 알려준다. > 이게 끝, 더 이상의 핻동은 없다.
+        foreach (var trackedImage in eventArgs.added)
+        {
+            UpdateInfo(trackedImage); // UpdateInfo()에 trackedImage 
+        }
+        
+        // ★ update : add 이후 update가 계속 행동한다. 즉, update가 add에서 통쨰로 데이터를 다 가지고 와서, 쭉 보면서, 새롭게 추가된 것이 있는지...
+        foreach (var trackedImage in eventArgs.updated)
+        {
+            UpdateInfo(trackedImage); // UpdateInfo()에 trackedImage 
+        }      
+    }
+
+
+
+
+    //** UpdateInfo() 함수 **//
+    void UpdateInfo(ARTrackedImage trackedImage)
+    {
+    
+        ▷ TrackingState.None은 limited(AR kit)와 Tracking(Ar core) 둘다 포함. 
+           그래서 Tracking상태와 Limited 상태 둘다 확인한다.
+           그래서 Tracking상태가 아니더라도, limite일수도 있고, 또는 , limite상태가 아니더라도, Tracking상태일수도 있고,...?
+    
+        // ★ 이미지를 트래킹하고 있는 상태가 아니라면
+        if (trackedImage.trackingState != TrackingState.Tracking) 
+        {
+            if(trackedImage.gameObject.activeSelf == true) // ★ 트래킹된 이미지의 프리팹이 보이게 설정되어 있으면
+            {
+                trackedImage.gameObject.SetActive(false); // ★ 해당 프리팹 비활성화 
+            }
+            
+            return; // 이 다음 코드를 더 이상 읽지 않고, 바로 return(함수 바로 종료)
+        }
+        else // 이미지를 트래킹하고 있는 상태라면
+        {
+            trackedImage.gameObject.SetActive(true); // 해당 프리팹 활성화(트래킹된 이미지위에 해당 프리팹이 생성되어야 하므로)
+        }
+
+    
+        //Debug.Log(trackedImage.name); // 현재 어떤 이미지가 트래킹되고 있는지 name 출력(실제 이미지 이름은 아님)
+        //trackedImage.gameObject.GetComponent<Renderer>().material.color = Color.green; // 트래킹된 이미지 위에 표현할 프리팹 색상 변경
+        //trackedImage_Text.text = trackedImage.referenceImage.name; // 해당 이미지의 라이브러리에 설정된 이름(실제 이름) 텍스트로 출력   
+    }
+}
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+※ activeSelf
+// https://samablog.tistory.com/122 참고
+
+
+※ Tootip
+// https://codingmania.tistory.com/191 참고
+
+
+※ get, set
+// https://itmining.tistory.com/34 참고
+
+
+※ RequireComponent
+// https://clack.tistory.com/47 참고
+
+
+ ※ SerializeField
+// http://happycodebox.blogspot.com/2015/12/public-serializefield.html 참고
+// https://docs.unity3d.com/kr/530/ScriptReference/SerializeField.html 참고
+
+
+※ for each
+// https://chameleonstudio.tistory.com/46 참고
+
+
+※ ().transform.localScale
+// https://micropilot.tistory.com/2691 참고
+// https://ssabi.tistory.com/25 참고
+// https://cpp11.tistory.com/16 참고
+
+
+※ var 타입 : 할당되는 데이터를 파악해 컴파일러가 자동으로 해당변수의 형식을 지정
+// https://durubiz.tistory.com/entry/C-%EC%95%94%EC%8B%9C%EC%A0%81-%ED%83%80%EC%9E%85%EB%B3%80%ED%99%98-%EB%B3%80%EC%88%98-var-%ED%83%80%EC%9E%85 참고
+// https://qzqz.tistory.com/99 참고
+
+
+※ ().GetComponentInChildren<Type>()
+// https://silisian.tistory.com/41 참고
+// http://blog.naver.com/PostView.nhn?blogId=ancl122&logNo=220921530607 참고
+// https://moonausosigi.tistory.com/entry/Unity-GameObject-%EC%A0%91%EA%B7%BC 참고
+// https://ldhwj.tistory.com/2 참고
+
+
+※ ().worldCamera
+// https://docs.unity3d.com/kr/530/ScriptReference/Canvas-worldCamera.html 참고
+// https://docs.unity3d.com/kr/530/Manual/UICanvas.html 참고
+
+
+※ ().GetChild(인덱스)
+// https://m.blog.naver.com/PostView.nhn?blogId=heartybrain1&logNo=220985455927&proxyReferer=https:%2F%2Fwww.google.com%2F 참고
+
+
+※ TrackingState.None/ Tracking/ Limited
+// https://docs.unity3d.com/Packages/com.unity.xr.arsubsystems@2.1/api/UnityEngine.XR.ARSubsystems.TrackingState.html 참고
+
+
+※ 삼항연산자
+// http://dev-bear.com/archives/96 참고
+
+
+※ Stringformat
+// https://m.blog.naver.com/PostView.nhn?blogId=pxkey&logNo=221321776845&proxyReferer=https:%2F%2Fwww.google.com%2F 참고
+
+
+※ 에셋 번들
+// https://icoder.tistory.com/entry/Unity3D-%EA%B0%95%EC%A2%8C-%EC%95%A0%EC%85%8B%EB%B2%88%EB%93%A4-%EA%B0%9C%EB%85%90%EC%A0%95%EB%A6%AC 참고
+
+
+※ 오브젝트, 인스턴스
+// https://www.ijemin.com/blog/%EC%98%A4%EB%B8%8C%EC%A0%9D%ED%8A%B8%EC%99%80-%EC%9D%B8%EC%8A%A4%ED%84%B4%EC%8A%A4%EC%9D%98-%EC%B0%A8%EC%9D%B4-difference-between-obect-and-instance/ 참고
+
+
+※ Component로 object 제어
+// https://moonpmj.tistory.com/80 참고
+
+
+// AR Plane Manager
+// https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@2.2/manual/plane-manager.html
+
+
