@@ -1,0 +1,499 @@
+
+※ Unity를 사용하기 전 알면 좋은 개념들 
+
+- https://kukuta.tistory.com/177 
+
+
+※ Unity 주의사항 
+
+[1] C# 스크립트를 작성할 때 주의사항
+ 
+	- https://korstrix.github.io/unity/c%23/coding/know/Unity_C-_WarningList/ 참고
+
+	- https://blog.naver.com/timemachineboy/221258904368 참고
+
+	- https://flystone.tistory.com/68 참고
+
+ 
+[2] 메모리 관리 주의사항
+
+	- https://hubjp.blogspot.com/2019/07/unity_6.html 참고
+
+	
+[3] 소소한 꿀팁
+
+	- https://blog.naver.com/adc0420/221225170461 참고
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+※ Life Cycle
+
+요약) Unity 스크립트 실행 순서
+
+- https://flystone.tistory.com/69?category=293083 참고
+
+- https://sj0716.tistory.com/4 참고
+
+- https://blog.naver.com/kkkths/221817554061참고
+
+- https://blog.naver.com/gold_metal/221428574506 참고
+
+- https://blog.naver.com/rkdign/220851667559 참고
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+※ Canvas
+
+< UGUI 배경 >
+
+기존의  Unity는  GUI 개발 환경이 형편없고, 사용하기 불편해서 NGUI라는 유료 플러그인을 사용하여 GUI를 개발했다.
+그래서 Unity에서는는 NGUI 개발자를 불러들여 유니티 내 GUI 시스템을 대폭 업그레이드 시켰고, Unity 버전 4.6부터 새로운 GUI를 출시했다.
+이로써, 공식 명칭은 아니지만 UGUI라 불리는 GUI 시스템이 유니티 내에서 사용되기 시작했다.
+
+
+[1] Canvas(캔버스)
+
+- Canvas는 Unity에서 모든 UI 객체를 렌더링을 관리하기 위한 루트 Component이다.
+
+- 즉, 유니티에서 사용하는 모든 UI 구성 요소들은 모두 캔버스 밑에 위치한다.(캔버스의 자식이다.)
+
+- 캔버스를 생성하는 것을 잊더라도, UI 요소 중에 하나를 생성하면 Canvas는 자동으로 생성된다.
+
+-  한 씬(Scene)에서 캔버스를 여러개 생성 할 수 있다.
+
+- 캔버스 영역이 씬 뷰에서 사각형으로 나타나므로 게임 뷰에서 보지 않아도 UI를 쉽게 배치할 수 있다.
+
+- 캔버스(Canvas)에 있는 UI 요소는 계층 구조에 나타나는 것과 동일한 순서이다.
+
+   즉, 겹겹이 쌓이게 되므로, 첫 번째 있는 UI가 두 번째 UI에 가려져 보이지 않게 된다.
+
+   변경을 하고 싶다면 드래그하여 계층 구조에서 위,아래 순서를 변경하면 된다.
+
+- 캔버스에는 기본적으로 4가지의 컴포넌트가 포함되어 있다.
+
+	(1) Rect Transform
+
+	(2) Canvas
+
+	(3) Canvas Scaler
+
+	(4) Graphic Raycaster
+
+
+- 캔버스에는 스크린 공간 또는 월드 공간에 렌더링하기 위해 Render Mode가 세 종류 존재한다.
+
+	1) Render Mode
+
+		(1) 스크린 공간(Screen Space - Overlay)
+
+		가장 기본이 되는 모드로, 따로 설정하지 않으면 이 모드로 설정된다.
+
+		이 렌더 모드에서는 모든 UI 요소가 해당 씬에서 다른 모든 것 위에 렌더링된다. 
+
+		이 모드에서 캔버스는 자동으로 스크린을 채우고, 스크린 설정이 변하면 자동으로 크기를 조정한다.
+
+		스크린의 크기가 조절되거나 해상도가 변경되면 캔버스는 여기에 맞춰 자동으로 크기를 변경한다.
+
+		이 모드에서는 Rect Transform를 통해 직접 편집하는 것은 불가능하다.
+
+		캔버스가 Rect Transform을 설정해 자동으로 스크린을 채운다.
+
+			> Pixel Perfact  
+
+			선택하면 UI 엘리먼트는 렌더링될 때 가장 가까운 픽셀로 조정된다.
+	
+		
+		(2) 스크린 공간(Screen Space - Camera)
+	
+		이 모드는 Screen Space - Overlay와 매우 유사하지만 
+
+		이 렌더 모드에서는 캔버스가 씬의 특정 Camera 에서 주어진 거리만큼 앞쪽에 위치한다.
+
+		UI 요소는 이 카메라에 의해 렌더링된다. 즉 카메라 설정이 UI의 모습에 영향을 준다. 
+
+		카메라가 Perspective 으로 설정되어 있으면 UI 요소는 원근감이 있게 렌더링되며, 원근 왜곡의 정도는 카메라 Field of View 에 의해 조절될 수 있다. 
+
+		스크린의 크기가 조절되거나 해상도가 변경되거나 카메라가 변경되면 캔버스 역시 여기에 맞춰 자동으로 크기를 변경한다.
+
+
+
+		(3)월드 공간(World Space)
+
+
+		이 렌더 모드에서는 캔버스는 씬에 있는 다른 게임오브젝트처럼 동작한다.
+
+		캔버스의 크기는 사각 트랜스폼(Rect Transform)을 사용하여 수동으로 설정할 수 있으며(위 두 개는 수동 설정 불가), UI 요소는 3D 배치에 기반하여 씬의 다른 오브젝트의 앞 또는 뒤에 렌더링된다.
+
+		이 방식은 월드의 일부를 이루도록 의도된 UI에 유용하다. 
+
+		그래서 이 방식을 “서사적 인터페이스”라고도 부르기도 한다.
+
+
+
+
+(+) 카메라 위치 변경
+
+- https://robatokim.tistory.com/entry/%EC%97%90%EB%94%94%ED%84%B0-%ED%99%94%EB%A9%B4%EC%8B%9C%EC%A0%90%EC%9C%BC%EB%A1%9C-%EC%B9%B4%EB%A9%94%EB%9D%BC-%EC%9C%84%EC%B9%98-%EC%98%AE%EA%B8%B0%EA%B8%B0
+	
+  
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ 	
+※ Anchor(앵커)
+
+요약 ) Rect transform은 UI에서 사용되는 Transform이다.
+
+          Rect transform에는 Width, Height, Anchors, Pivot의 속성이 있다.
+
+
+- https://wergia.tistory.com/184  참고
+
+- https://blog.danggun.net/4431 참고 
+
+- https://ssabi.tistory.com/10 참고 
+
+- https://blog.naver.com/celebtk/221704101946 참고
+
+- https://202psj.tistory.com/1281 참고
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+※ vector3 
+
+- https://teddy.tistory.com/19 참고
+
+- https://m.blog.naver.com/PostView.nhn?blogId=yoohee2018&logNo=220691949344&proxyReferer=https%3A%2F%2Fwww.google.com%2F 참고
+
+
+(+) Transform 
+
+- https://itmining.tistory.com/45 참고
+
+- https://killu.tistory.com/12 참고
+
+- https://loadofprogrammer.tistory.com/69 참고
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+ 
+※ DontDestory
+
+요약 ) Scene이 바뀌어도 유지해야만 하는 GameObject가 있을 수 있다.
+          DontDestroyOnLoad() Method를 사용하면 Scene이 바뀌어도 해당 GameObject는 파괴되지 않고 남아있습니다.
+
+
+- https://wergia.tistory.com/191 참고
+
+- https://bluemeta.tistory.com/19 참고
+
+- https://chameleonstudio.tistory.com/57 참고
+
+- http://www.devkorea.co.kr/bbs/board.php?bo_table=m03_qna&wr_id=83814 참고
+
+
+(+) Prepab(프리팹) 
+
+요약) 무수히 많은 물체, 개체를  instance화 시킬 수 있게 하는 것
+
+- https://iflife1124.tistory.com/10 참고
+
+- https://wergia.tistory.com/196 참고
+
+- https://m.blog.naver.com/yoohee2018/220700351259 참고
+
+- https://m.blog.naver.com/PostView.nhn?blogId=hst322&logNo=220926498768&proxyReferer=https%3A%2F%2Fwww.google.com%2F 참고
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+※ Delegate ( = 대리자)
+
+요약) 다른 함수들을 대신 불러주는, 사용자가 만들어내는 자료형이다.
+         하나의 호출로 여러 함수(본인)는 물론, 다른 Class의 함수까지 한 번에 부르고 싶을 때 사용한다.
+
+- https://shhyc1001.tistory.com/120  참고
+
+- https://mrw0119.tistory.com/19 참고
+
+- http://theeye.pe.kr/archives/2740 참고
+
+- https://hyunity3d.tistory.com/522 참고
+
+- https://linecode.tistory.com/12 참고
+
+- https://mrw0119.tistory.com/21 참고
+
+- https://blog.naver.com/beodeulpiri/221766921931 참고
+
+- https://m.blog.naver.com/enter_maintanance/221639746861 참고
+
+- http://devkorea.co.kr/bbs/board.php?bo_table=m03_qna&wr_id=36068 참고
+
+- https://tony-programming.tistory.com/entry/C-Delegate%EC%97%90-%EB%8C%80%ED%95%9C-%EC%A0%95%EB%A6%AC 참고
+
+
+(+)  Property(프로퍼티) ( = 속성) (대표적 예 : get, set)
+
+- https://itmining.tistory.com/34 참고
+
+
+(+) CallBack 함수
+
+- https://dhkvmf88.tistory.com/11 참고
+
+- http://lab.gamecodi.com/board/zboard.php?id=GAMECODILAB_QnA_etc&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=3059 참고
+
+
+(+) Action
+
+- https://blog.naver.com/enter_maintanance/221639746861 참고
+
+- https://blog.naver.com/beodeulpiri/221766921931 참고
+
+- https://blog.naver.com/soato1004/220211794878 참고
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+ 
+※ Class의 상속
+
+- https://blog.hexabrain.net/142 참고
+
+- https://marshmello.tistory.com/33 참고
+
+- https://zprooo915.tistory.com/15 참고
+
+- https://all-day-study-room.tistory.com/6 참고
+
+- https://lesslate.github.io/unity/Unity-C-%EC%83%81%EC%86%8D 참고
+
+- https://gmlwjd9405.github.io/2018/09/17/class-object-instance.html  참고
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+※ Raycast
+
+- https://bluemeta.tistory.com/10 참고
+
+- https://chameleonstudio.tistory.com/63 참고
+
+- http://theeye.pe.kr/archives/2764 참고
+
+- https://a-game-developer0724.tistory.com/116 참고
+
+- https://blog.naver.com/sasayakki/221349100947 참고
+
+- http://developug.blogspot.com/2014/10/raycast.html  참고
+
+(+)Tag
+
+https://coding-groot.tistory.com/48 참고
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+※ Keycode
+
+- https://chameleonstudio.tistory.com/26?category=1035594 참고
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+※ Coroutine(코루틴)
+
+요약) Coroutine은 자신의 작업이 완료될떄까지, 미래의 어떤 시점에서든(특정한 조건이 충족되면), 부분적으로 실행할 수 있는 함수(기능)이다.
+        
+         어떠한 작업을 처리할 때 필요에 따라 시간 간격을 두고 작업을 처리할 수 있도록 도와주는 함수 형식이다.
+         
+         매 프레임마다 처리되어야 하는 작업은 Update를 이용하는 것이 Coroutine을 사용하는 것보다 낫다.
+        
+        Coroutine은 일정시간 기다리라는 명령을 주고 기다렸다가 작업하는 형식, Update는 애초에 매 프레임 사용하기 위하여 만들어진 함수니까 차이가 있다.
+
+        그렇지만 매 프레임 처리하는 작업을 제외하고는 Coroutine이 더욱 효과적이다.
+
+
+- https://dhy948.tistory.com/16 참고
+
+- http://theeye.pe.kr/archives/2725 참고 
+
+- https://prosto.tistory.com/68 참고
+
+- https://chameleonstudio.tistory.com/29 참고
+
+- https://blog.naver.com/sj_artist/221816562405 참고
+
+- https://blog.naver.com/beodeulpiri/221766985313 참고
+
+- https://blog.naver.com/womd2/220224965520 참고
+
+- https://blog.naver.com/wjsdldks/220297797783 참고
+
+- https://blog.naver.com/loudsmile/220075060033 참고
+
+- https://blog.naver.com/kimsung4752/221363423399 참고
+
+- https://theemeraldtablet.tistory.com/entry/%EC%BD%94%EB%A3%A8%ED%8B%B4Coroutine%EC%9D%98-%EA%B8%B0%EB%B3%B8-%EA%B0%9C%EB%85%90-%EB%B0%8F-%ED%99%9C%EC%9A%A9 참고
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+ 
+※ Static 변수(정적변수)
+
+- https://wikidocs.net/228 참고
+
+- https://linecode.tistory.com/6 참고
+
+- https://bluemeta.tistory.com/16 참고
+
+- https://wergia.tistory.com/180 참고
+
+- https://ssscool.tistory.com/12 참고
+
+- https://funfunhanblog.tistory.com/51 참고
+
+- https://postpiglet.netlify.com/posts/csharp-singletone-vs-staticclass/ 참고
+ 
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+※ Dictionary
+
+- https://grayt.tistory.com/77 참고
+
+- https://includecoding.tistory.com/107 참고
+
+(+) List(리스트) / Array(배열)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+※ ScriptaleObject
+
+요약 )  한 번 정해놓으면 변하지 않을 정보들을 다루는 데에 유용하다.
+           (게임 중 발생/변경된 데이터를 저장하는 것에는 적합하지 않고(불가),게임 기초데이터를 저장하는 용도로 사용 가능.)
+
+           변하는 값이더라도 처음에 정해진 값으로 다시 돌아와야 하는 값들을 쓸 때 유용하다. 
+           ex) 체력이 100인 몬스터의 데이터는 항상 시작할 땐 100이어야 하지만 떄리면 깍이기도 하고  그 정보를 다른 곳에서 접근할 수 있어야 할 때.
+
+           싱글톤의 상당부분을 대체할 수 있다.
+           Asset형태이기 때문에 SetDirty()를 통해서 반드시 저장해주어야 한다.
+
+
+- http://archive.fo/5Mifm 참고
+
+- https://adaid.tistory.com/36 참고
+
+- https://lifeisforu.tistory.com/339 참고
+
+- https://wergia.tistory.com/189 참고
+
+- https://tmandarange.tistory.com/11 참고
+
+- https://nforbidden-fruit.tistory.com/29 참고
+
+- https://m.blog.naver.com/yoohee2018/220725032540  참고
+
+- http://blog.naver.com/cdw0424/221472590996 참고
+
+- https://blog.naver.com/yoohee2018/220724426783 참고
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+※ Sprite 이미지
+
+- https://wergia.tistory.com/66 참고
+
+- https://blog.naver.com/hyunkh0311/221451025353 참고
+
+- https://blog.naver.com/ga2wo/221436614287 참고
+
+- https://m.blog.naver.com/PostView.nhn?blogId=anciid&logNo=220486733144&proxyReferer=https:%2F%2Fwww.google.com%2F 참고
+
+- http://blog.naver.com/PostView.nhn?blogId=pxkey&logNo=221372390383&categoryNo=0&parentCategoryNo=0 참고 (Image 관련)
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+ ※ Scene 이동
+ 
+ - https://chameleonstudio.tistory.com/58 참고
+     
+
+※ UI - Panel 선언
+
+- https://stackoverflow.com/questions/28773818/hiding-a-ui-panel-from-script-in-unity 참고
+
+
+※ Scroll View 관련
+
+- https://www.slideshare.net/ssuser4455c4/unity-scroll-view 참고 
+
+
+※ Basic Layout
+
+https://blog.naver.com/okbudy/220332284425 참고 
+
+
+※ 위치, 크기 자동 조정
+
+- https://themestock7.tistory.com/59 참고
+
+- https://blog.naver.com/PostView.nhn?blogId=4slash5&logNo=221317257631&parentCategoryNo=&categoryNo=7&viewDate=&isShowPopularPosts=false&from=postView 참고
+
+
+※  Layout Group
+
+- https://wergia.tistory.com/178 참고
+
+- https://blog.naver.com/aflove2000/221398609944 참고
+
+- https://blog.naver.com/sisi0616/221410452602 참고 
+
+ 
+※ Layout Element
+
+- https://docs.unity3d.com/kr/530/Manual/UIAutoLayout.html 참고 
+
+- http://www.theappguruz.com/blog/layout-element-in-unity-ui-4-6 참고  
+
+- https://docs.huihoo.com/unity/5.5/Documentation/ScriptReference/UI.LayoutElement.html 참고 
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+※ Invoke 함수
+
+- https://solution94.tistory.com/7 참고
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+※ 다른 Script의 함수 또는 변수 사용하기
+
+- https://jsmobile.tistory.com/15 참고(씬 넘어갈때 데이터 전송)
+
+- https://m.blog.naver.com/PostView.nhn?blogId=tkvkdlfos12&logNo=221145853186&proxyReferer=https:%2F%2Fwww.google.com%2F 참고(같은 씬에서)
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+※  Content Size Fitter
+
+- https://wergia.tistory.com/170 참고
+
+- https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/script-ContentSizeFitter.html 참고
+
+
