@@ -1,16 +1,161 @@
 
-//** < 문제1 Scene > **//
+※ 4월
+※ 기간 : 대략 일주일?정도?
+※ 유니티 주요 기능 활용
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+//* 문제와 관련된 모든 데이터 *//
 
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI; // UI 사용하기 위해
-using UnityEngine.SceneManagement; // 씬 전환하기 위해
+
+[CreateAssetMenu (fileName = "Exam_d", menuName = "Exam_m")]
+
+public class ExamData : ScriptableObject
+{
+    //** int **//
+    public int UserCount; // 사용자가 총 문제 중 몇 문제까지 풀었는지 
+
+    //** string **//
+    public string PrevHint; //힌트예고("5초 뒤에 힌트가 나와요!")
+    public string No; // 다음버튼 팝업창(문제를 풀지 않으면 다음 문제로 넘어가지 못합니다!)
+    //public Sprite ExamBackground; // 문제 텍스트 배경
+
+    //** List **//
+    public List<AboutExam> AExam = new List<AboutExam>(); // 출제되는 문제에 대한 데이터
+    public List<UserCheck> UCheck = new List<UserCheck>(); // 사용자가 선택한 답
+}
+
+
+// 출제되는 문제에 대한 데이터 //
+
+[System.Serializable] // 직렬화
+public class AboutExam 
+{
+    public bool ExamAnswer; // 각 문제에 대한 정확한 답
+
+    //문자열의 [TextArea] : 가장 간단한 방법, string 변수 위에 [TextArea]써준 뒤 직접 엔터를 쳐서 줄바꿈을 해준다.
+    [TextArea] 
+    public string ExamText; // 문제(ex."다음 보기 중 아닌 것을 고르시오.")
+    [TextArea]
+    public string ExamHint; // 각 문제에 대한 힌트
+
+    //public List<UserCheck> UserExam = new List<UserCheck>(); // 사용자가 선택한 답
+}
+
+
+// 사용자가 선택한 답 //
+
+[System.Serializable] // 직렬화
+public class UserCheck 
+{
+    public bool UserAnswer; // 사용자가 선택한 답
+}
+
+
+/*
+   1. Unity 문자열 줄바꿈
+   - https://mentum.tistory.com/299 참고
+*/
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+//** Image Object 데이터 **//
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "Sprite_d", menuName = "Sprite_m")]
+
+public class SpriteData : ScriptableObject
+{
+    public List<AllSpriteData> ASD = new List<AllSpriteData>();
+}
+
+
+[System.Serializable] // 직렬화
+
+//** 현재 프로젝트의 모든 Scene의 모든 Image Object 데이터(sprite로 가져올것이다) **//
+public class AllSpriteData
+{
+    //** MainScene **//
+    public Sprite MainBackground_Image; // 메인화면 배경화면 이미지
+
+    //** HealhScene **//
+    public Sprite HealthBackground_Image; // 보건교육 배경화면 이미지
+    public Sprite HealthExplain_Image; // 보건교육 설명 이미지
+
+    //** Exam(1~6)Scene **//
+    public Sprite ExamBackground_Image; // 문제1번~6번 배경화면 이미지
+    public Sprite ExamBoard_Image; // 문제1번~6번 칠판 이미지
+    public Sprite ExamMethod_Image; // 문제1번~6번 설명 이미지
+    public Sprite ExamHintBoard_Image; // 문제1번~6번 HInt 내용 이미지
+    public Sprite ExamWarn_Image; // 문제1번~6번 경고창 이미지("문제를 풀지 않았어요!")
+
+    //** Last Scene **//
+    public Sprite LastBackground_Image; // LastScene 배경화면 이미지(CommentScene도 같은 배경이미지 사용)
+
+    //** Comment Scene **//
+    public Sprite CEBackground_Image; // LastScene의 CommentBackgroundImage(해설 배경화명 이미지)
+    public Sprite CEButton_Image; // 문제 버튼 이미지
+    public Sprite CSButton_Image; // 보충설명 버튼 이미지
+    public Sprite CEPopUp_Image; // 문제 지문 보여주는  팝업 창 이미지
+    public Sprite CSPopUp_Image; // 보충설명 보여주는  팝업 창 이미지
+}
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+// ** 문제해설과 관련된 모든 데이터 ** //
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+★ [CreateAssetMenu(fileName = "Solve_d", menuName = "Solve_m")]
+
+public class SolveData : ScriptableObject
+{
+    public List<string> Ment = new List<string>(); // 맞은 개수에 해당하는 텍스트
+    public List<AboutSolve> ASolve = new List<AboutSolve>(); // 출제되는 문제해설에 대한 데이터
+
+    public int currentIndex=0;
+}
+
+
+//** 출제되는 문제해설에 대한 데이터 **//
+
+[System.Serializable] // 직렬화
+public class AboutSolve
+{
+    //문자열의 [TextArea] : 가장 간단한 방법, string 변수 위에 [TextArea]써준 뒤 직접 엔터를 쳐서 줄바꿈을 해준다.
+    [TextArea]
+    public string SolveText; // 해설
+    [TextArea]
+    public string AddText; // 보충설명(추가설명)
+    [TextArea]
+    public string WordText; // 용어설명
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+//** < 문제1 Scene > **// ( = 피드백 이후라서 '문제 2'와 살짝 다를 수 있음)
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+★ using UnityEngine.UI; // UI 사용하기 위해
+★ using UnityEngine.SceneManagement; // 씬 전환하기 위해
 
 public class UseExamData1 : MonoBehaviour
 {
 
-    // ** ScriptableObject ** //
+    ★// ** ScriptableObject ** //
     public ExamData EData; // ScriptableObject 상속받은 ExamData 사용위해
     public SpriteData sprtiedata3; // ScriptableObject 상속받은 Sprite.Data 사용 위해
 
@@ -43,7 +188,7 @@ public class UseExamData1 : MonoBehaviour
     public GameObject EHPImage; // 힌트 이미지(ExamHintimage)오브젝트
     public GameObject NoImage; // 경고 이미지 오브젝트
 
-    // ** Delegate ** //
+    ★// ** Delegate ** //
     public delegate void HintDelegate(); // 힌트관련 동작을 대신 불러주는 delegate
     HintDelegate HintDel;
 
@@ -51,7 +196,7 @@ public class UseExamData1 : MonoBehaviour
     NoDelegate NoDel;
 
 
-    // ** 전역변수 int(문제와 관련된 모든 스크립트에서 사용하기위해) ** //
+    ★// ** 전역변수 int(문제와 관련된 모든 스크립트에서 사용하기위해) ** //
     static public int i= 0; //list에 사용할 인덱스
 
 
@@ -75,11 +220,11 @@ public class UseExamData1 : MonoBehaviour
     // Start is called before the first frame update
     void Start() // 초기화(문제 1부터 시작)
     {
-        FirstSetting();
-        ButtonSetting();
+        ★ FirstSetting();
+        ★ ButtonSetting();
     }
 
-    private void FirstSetting()
+    ★ private void FirstSetting()
     {
         Check = false; // 처음에는 false(사용자가 문제를 풀지 않았으므로)
         EData.UserCount = 0; // '처음에는 0(사용자가 문제를 풀지 않았으므로)
@@ -100,7 +245,7 @@ public class UseExamData1 : MonoBehaviour
         NoDel = NoNext; // Delegate로 대신 호출할 NoNext함수 delegate에 추가
     }
 
-    private void ButtonSetting()
+    ★ private void ButtonSetting()
     { 
         // '다음'버튼 클릭하면 //
         Next.onClick.AddListener(() =>
@@ -139,7 +284,7 @@ public class UseExamData1 : MonoBehaviour
 
     }
 
-    // ** 힌트 예고 ** //
+    ★// ** 힌트 예고 ** //
     void HintPrev() 
     {
         //힌트예고 오브젝트 활성화
@@ -176,7 +321,7 @@ public class UseExamData1 : MonoBehaviour
     }
 
 
-    // ** 문제 풀지 않았다는 경고 **//
+    ★// ** 문제 풀지 않았다는 경고 **//
     void NoNext()
     {
         NoImage.SetActive(true); //NoImage(" ")
@@ -242,7 +387,233 @@ public class UseExamData1 : MonoBehaviour
 
 
 
-------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+
+//** < 문제2 Scene > **// ('문제 1번 ~ 문제 6번'까지 변수이름 뺴고 )
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+★ using UnityEngine.UI; // UI 사용하기 위해
+★ using UnityEngine.SceneManagement; // 씬 전환하기 위해
+
+public class UseExamData2 : MonoBehaviour
+{
+    ★// ** ScriptableObject ** //
+    public ExamData EData2; // ScriptableObject 상속받은 ExamData 사용위해
+    public SpriteData sprtiedata4; // ScriptableObject 상속받은 Sprite.Data 사용 위해
+
+
+    // ** UI ** //
+    //Button
+    //public Button Out2;  // '나가기' 버튼(기능 : 메인화면으로)
+    public Button Hint2; // '힌트' 버튼(기능 : 힌트 팝업창 생성)
+    public Button Right2; // 'O' 버튼
+    public Button Wrong2; // 'X' 버튼
+    public Button Next2; // '다음' 버튼
+
+    //Text
+    public Text EText2; // 문제(ex.1.예비초등학생의.....)
+    public Text PHint2; // 힌트예고 텍스트("5초 뒤에 힌트가 나와요!")
+    public Text EHint2; // 문제에 대한 힌트 텍스트
+    public Text NoText2; // 문제를 풀지 않았다는 경고 텍스트
+
+    //Image
+    public Image Exam2Bg; // ExamScene2의 Background이미지
+    public Image Exam2Board; //ExamScene2의 ExamBoard이미지
+    public Image Exam2Method; //ExamScene2의 ExamMethod이미지
+    public Image Exam2HIntBoard; //ExamScene2의 ExamHIntBoard이미지
+    public Image Exam2Warn; //ExamScene2의 ExamWarn이미지
+
+
+    // ** GameObject ** //
+    //public GameObject PHText2; // 힌트예고 텍스트 오브젝트
+    public GameObject HintButton2; // 힌트 버튼 오브젝트
+    public GameObject EHPImage2; // 힌트 이미지(ExamHintimage)오브젝트
+    public GameObject NoImage2; // 경고 이미지 오브젝트
+
+    
+    ★// ** Delegate ** //
+    public delegate void HintDelegate2(); // 힌트관련 동작을 대신 불러주는 delegate
+    HintDelegate2 HintDel2;
+
+    public delegate void NoDelegate2(); // '문제를 풀지 않았어요! 그래서 다음 문제로 이동할 수 없어요!' 경고 동작을 대신 불러주는 delegate
+    NoDelegate2 NoDel2;
+
+
+    //** bool **//
+    public bool Check2; // 사용자가 답을 선택했는지 확인하기 위해(O 또는 X를 선택했는지)
+
+
+    //** int **//
+    public int k2 = 0; // 'UseExamData1.i + 1' 값을 저장하기 위해
+
+
+   ★ // ** Awake() ** //
+    void Awake()
+    {
+        //모두 비활성화로 시작
+        //PHText2.SetActive(false);
+        HintButton2.SetActive(false); // 힌트버튼
+        EHPImage2.SetActive(false); // 힌트이미지
+        NoImage2.SetActive(false); // No이미지("문제를 풀지 않았어요!")
+    }
+
+
+    ㅁ// ** Start **//
+    // Start is called before the first frame update
+    void Start()
+    {
+        Check2 = false; // 처음에는 false(사용자가 문제를 풀지 않았으므로)
+
+        ★
+        Exam2Bg.sprite = sprtiedata4.ASD[0].ExamBackground_Image; // 문제Scene 배경이미지
+        Exam2Board.sprite = sprtiedata4.ASD[0].ExamBoard_Image; // 문제칠판 이미지
+        Exam2Method.sprite = sprtiedata4.ASD[0].ExamMethod_Image; // 문제설명 이미지
+        Exam2HIntBoard.sprite = sprtiedata4.ASD[0].ExamHintBoard_Image; // 문제1번~6번 HInt 내용 이미지
+        Exam2Warn.sprite = sprtiedata4.ASD[0].ExamWarn_Image; // 문제경고창 이미지("문제를 풀지 않았어요!")
+
+        ★
+        // 'k2 = UseExamData1.i + 1'을 해주면 UseExamData1.i은 0값(UseExamData1.cs) 그대로 유지 ;
+        k2 = UseExamData1.i + 1;
+        EText2.text = EData2.AExam[k2].ExamText;
+
+        ★
+        //힌트관련 동작을 대신 호출하는 Delegate(각 Scene에서 한번씩만 호출하거라서 Start()함수에 사용, Update()함수에서 사용하면 매 프레임마다 실행 -> 노놉!)
+        HintDel2 = HintPrev2; // Delegate로 대신 호출할 HintPrev함수 delegate에 추가
+        HintDel2(); // Delegate함수 호출 
+
+        ★
+        //경고 팝업창 동작을 대신 호출하는 Delegate
+        NoDel2 = NoNext2; // Delegate로 대신 호출할 NoNext함수 delegate에 추가
+
+        // '다음'버튼 클릭하면 //
+        Next2.onClick.AddListener(() =>
+        {
+            if (Check2 == true) // 사용자가 답을 선택했으면(문제를 풀었으면)
+            {
+                SceneManager.LoadScene("ExamScene3"); // 다음 문제로 이동한다.
+            }
+            else // (사용자가 문제를 풀지 않았으면)
+            {
+               ★ NoDel2(); // 경고 팝업 창 Delegate 실행.
+            }
+        });
+    }
+
+
+    // ** 힌트 예고 ** //
+    void HintPrev2()
+    {
+        //힌트예고 오브젝트 활성화
+        //PHText2.SetActive(true);
+        //PHint2.text = EData2.PrevHint; //힌트예고("5초뒤에 힌트가 나와요")
+
+        StartCoroutine("HintUser2"); //HintUser 코루틴 실행
+    }
+    ★// ** Coroutine ** //
+    // 문제 시작 후 5초뒤에 힌트 버튼 활성화(+ 힌트내용도 활성화) 
+    IEnumerator HintUser2() // 해당 문제에 대한 힌트
+    {
+        //5초 뒤에
+        yield return new WaitForSeconds(5f);
+
+        //힌트예고 오브젝트 비활성화, 힌트 버튼 오브젝트 활성화
+        //PHText2.SetActive(false);
+        HintButton2.SetActive(true);
+
+        //힌트 버튼 클릭하면
+        Hint2.onClick.AddListener(() =>
+        {
+            EHPImage2.SetActive(true); //힌트 이미지 활성화
+            HintButton2.SetActive(false); // 힌트 버튼 비활성화
+            EHint2.text = EData2.AExam[k2].ExamHint;
+        });
+
+        //3초 뒤에
+        yield return new WaitForSeconds(3f);
+
+        //다시 힌트 버튼, 내용 오브젝트들 비활성화
+        //HintButton2.SetActive(false);
+        EHPImage2.SetActive(false);
+    }
+
+
+    ★// ** 문제 풀지 않았다는 경고 **//
+    void NoNext2()
+    {
+        NoImage2.SetActive(true);
+        NoText2.text = EData2.No;
+
+        StartCoroutine("NoUser2"); //HintUser 코루틴 실행
+    }
+    // ** Coroutine ** //
+    // 팝업 창 띄우고 3초 뒤에 닫음.
+    IEnumerator NoUser2() // 경고 팝업 창
+    {
+        //3초 뒤에
+        yield return new WaitForSeconds(3f);
+
+        NoImage2.SetActive(false);
+    }
+
+
+    // ** Update ** //
+    // Update is called once per frame
+    void Update()
+    {
+        /*
+        // '나가기' 버튼 누르면 메인화면으로 이동(Scene 이동)
+        Out2.onClick.AddListener(() =>
+        {
+            // 초기화(문제 풀기 시작 전 : 모든 문제 선택X)
+            for (int i = 0; i < k2 + 6; i++)
+            {
+                EData2.UCheck[i].UserAnswer = false;
+            }
+            // 사용자가 총 몇 문제를 풀었는지 = 0개
+            EData2.UserCount = 0;
+            SceneManager.LoadScene("MainScene"); //메인화면으로 이동
+        });
+        */
+
+        // 사용자는 'O'버튼 아니면 'X'버튼을 누른다. //
+        // 'O' 버튼 누르면
+        Right2.onClick.AddListener(() =>
+        {
+            EData2.UserCount = 2; // '사용자가 2번 문제를 풀었다'
+            EData2.UCheck[k2].UserAnswer = true; // 사용자가 선택한 답을 리스트에 저장
+            Check2 = true; // 사용자가 'O'를 선택했다.
+        });
+
+        // 'X' 버튼 누르면
+        Wrong2.onClick.AddListener(() =>
+        {
+            EData2.UserCount = 2; // '사용자가 2번 문제를 풀었다'
+            EData2.UCheck[k2].UserAnswer = false;
+            Check2 = true; // 사용자가 'X'를 선택했다.
+        });
+
+        /*
+        // '다음'버튼 클릭하면 //
+        Next2.onClick.AddListener(() =>
+        {
+            if (Check2 == true) // 사용자가 답을 선택했으면(문제를 풀었으면)
+            {
+                SceneManager.LoadScene("ExamScene3"); // 다음 문제로 이동한다.
+            }
+            else // (사용자가 문제를 풀지 않았으면)
+            {
+                NoDel2(); // 경고 팝업 창 Delegate 실행.
+            }
+        });
+        */
+    }
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
 
 //** < 해설 Scene > **//
 
@@ -367,3 +738,331 @@ public class Comment : MonoBehaviour
         CText.text = SolveData2.ASolve[CommentBut1.cb].SolveText; // 1번 문제에 대한 해설. 
     }
 }
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+//** < 마지막(정답비교 & 해설 버튼) Scene > **// ( = 피드백 이후 )
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI; // UI 사용하기 위해
+using UnityEngine.SceneManagement; // 씬 전환하기 위해
+
+public class UseSolveData : MonoBehaviour
+{
+    public static UseSolveData instance = null;
+    ★//** ScriptableObject **//
+    ★[Header("<Data>")]
+    public ExamData ExamData1; // ScriptableObject 상속받은 ExamData 사용위해(문제와 힌트, 정답과 사용자가 선택한 답)
+    public SolveData SolveData1; // ScriptableObject 상속받은 SolveData 사용위해(문제해설관련)
+    public SpriteData sprtiedata9; // ScriptableObject 상속받은 Sprite.Data 사용 위해
+
+
+    //** UI **// 
+    //Text
+    ★[Header("<UI>")]
+    public Text[] EAnswer; // 각 문제 정답(총 문제 6개) - 배열로
+    public Text[] UAnswer; // 사용자가 선택한 정답(총 문제 6개) - 배열로
+    public Text AllNumber; // 문제 총 개수(AllNumber
+    public Text AgreeNumber; // 일치하는 문제 개수(AgreeNumber)
+    public Text EMent; // 맞은 문제에 대한 각각의 멘트
+
+    //Button
+    ★[Space]
+    public Button HButton; // 홈으로 버튼(메인화면으로 이동)
+    public Button EButton; // 끝내기 버튼(게임 종료)
+
+    //Image
+    [Space]
+    public Image LastBg; // LastScene의 Background이미지
+
+    //** GameObject **//
+    [Header("--------------------------------한글입니다.")]
+    public GameObject[] CButton; // 문제 해설버튼(총 6개 버튼 배열로)
+
+
+    //** int **//
+    [Header("-----------Var-----------")]
+    public int count = 0; // 정답과 사용자가 선택한 답을 비교하여 총 일치하는 개수 구하기 위해 
+    public int kLast = 0; // UseExamData1.i의 증가하기 전 값 저장(kL에서 L은 LastScene)
+
+
+    private void Awake()
+    {
+        ★instance = this;
+    }
+
+    //** Start 함수 **//
+    // Start is called before the first frame update
+    void Start()
+    {
+        count = 0;
+
+        LastBg.sprite = sprtiedata9.ASD[0].LastBackground_Image; // LastScene 배경이미지
+
+
+        // 처음에 UseExamData1.i에서 가져오는 0값을 저장
+       ★ kLast = UseExamData1.i;
+
+        // 사용자가 모든 문제를 다 풀었으면(총 6문제)
+        if (ExamData1.UserCount == 6) 
+        {
+            SolveAnswer(); // 각 문제 정답
+            UserAnswer(); // 사용자가 선택한 정답
+
+            ★AllNumber.text = (UseExamData1.i + 6).ToString(); // 문제 총 개수
+            UECompare(); // User와 Question의 일치하는 정답을 비교 
+
+            // 해설버튼 클릭(해당 버튼 클릭했을때 실행할 함수 메세지로 전송)
+            for (int i = 0; i < UseExamData1.i + 6; i++)
+            {
+                // 총 6개 문제(1번 ~ 6번)
+                ★CButton[i].SendMessage("OnClick");
+            }
+        }
+
+        // 홈 버튼 : 첫 화면으로 이동.
+        HButton.onClick.AddListener(() =>
+        {
+            // 초기화(문제 풀기 시작 전 : 모든 문제 선택X)
+            for (int i = 0; i < kLast + 6; i++)
+            {
+                ExamData1.UCheck[i].UserAnswer = false;
+            }
+            // 사용자가 총 몇 문제를 풀었는지 = 0개
+            ExamData1.UserCount = 0;
+            CommentBut1.cb = 0;////
+            SceneManager.LoadScene("MainScene"); // 해설 Scene으로 이동한다.
+        });
+
+        
+       ★EButton.onClick.AddListener(() =>
+        {
+            Application.Quit();
+        });
+        
+
+        /*
+        SolveAnswer(); // 각 문제 정답
+        UserAnswer(); // 사용자가 선택한 정답
+
+        AllNumber.text = (UseExamData1.i + 6).ToString() ; // 문제 총 개수
+        UECompare(); // User와 Question의 일치하는 정답을 비교 
+
+        // 해설버튼 클릭(해당 버튼 클릭했을때 실행할 함수 메세지로 전송)
+        for(int i = 0; i < UseExamData1.i + 6; i++)
+        {
+            // 총 6개 문제(1번 ~ 6번)
+            CButton[i].SendMessage("OnClick");
+        }
+        */
+    }
+
+    // ** SolveAnswer(각 문제 정답) **//
+    void SolveAnswer()
+    {
+        for(int i = 0; i < UseExamData1.i + 6; i++)
+        {
+            if(ExamData1.AExam[i].ExamAnswer == true) // 정답이 O이면
+            {
+                EAnswer[i].text = "O";
+            }
+            else if(ExamData1.AExam[i].ExamAnswer == false) // 정답이 X이면
+            {
+                EAnswer[i].text = "X";
+            }
+        }
+    }
+
+    // ** UserAnswer(사용자가 선택한 정답) **//
+    void UserAnswer()
+    {
+        for (int i = 0; i < UseExamData1.i + 6; i++)
+        {
+            if (ExamData1.UCheck[i].UserAnswer == true) // 정답이 O이면
+            {
+                UAnswer[i].text = "O";
+            }
+            else if (ExamData1.UCheck[i].UserAnswer == false) // 정답이 X이면
+            {
+                UAnswer[i].text = "X";
+            }
+        }
+    }
+
+    // ** User 와 Question의 일치하는 정답을 비교 **//
+    void UECompare()
+    {
+        for (int i = 0; i < UseExamData1.i + 6; i++)
+        {
+            // 문제의 정답과 사용자가 선택한 답이 일치하면
+            if (ExamData1.AExam[i].ExamAnswer == ExamData1.UCheck[i].UserAnswer)
+            {
+                count++; // 개수 증가
+            }
+        }
+        AgreeNumber.text = count.ToString(); // 일치하는 개수
+
+        if(count == 1 || count == 2) // 일치하는 개수가 1개 또는 2개이면
+        {
+            ★EMent.text = SolveData1.Ment[0]; //멘트 1
+        }
+        else if(count == 3 || count == 4) // 일치하는 개수가 3개 또는 4개이면
+        {
+            EMent.text = SolveData1.Ment[1]; //멘트 2
+        }
+        else // 일치하는 개수가 5개 또는 6개이면
+        {
+            EMent.text = SolveData1.Ment[2]; //멘트 3
+        }
+    }
+
+    //** Update 함수 **//
+    // Update is called once per frame
+    void Update()
+    {
+       
+    }
+
+    /*
+    void OnApplicationQuit()
+    {
+        
+    }
+    */
+}
+
+
+
+/* 
+  1.SendMessage 
+   http://www.devkorea.co.kr/bbs/board.php?bo_table=m03_qna&wr_id=20075  참고  
+   https://hyunity3d.tistory.com/378 참고
+
+  2. OnApplicationQuit() 함수
+  https://chameleonstudio.tistory.com/40 참고
+
+  3. Application 종료
+  https://m.blog.naver.com/PostView.nhn?blogId=yoohee2018&logNo=220702704444&proxyReferer=https:%2F%2Fwww.google.com%2F 참고   
+*/
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+//**  해설 - 문제 1 버튼 **// (문제 1번 ~ 문제6번 까지 모두 동일)
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI; // UI 사용하기 위해
+using UnityEngine.SceneManagement; // 씬 전환하기 위해
+
+
+public class CommentBut1 : MonoBehaviour
+{
+    //** UI **//
+    // Button
+    public Button CButton1; // 문제 1. 해설버튼
+
+
+    ★// static public int cb1;
+    //** 전역 변수**//
+    // 총 6문제의 스크립트에서 모두 사용하기 위해 전역변수로 설정
+    ★static public int cb; //(cb = comment button)
+
+
+    //** Start 함수 **//
+    void Start()
+    {
+        ★OnClick(); // UseSolveData.cs에서 SendMessage로 실행하라고 메세지로 알려줌.
+    }
+
+    //** OnClick 함수 **//
+    //** 버튼을 클릭하면 실행할 함수**//
+    void OnClick()
+    {
+        // 문제 1 해설버튼을 클릭하면
+        CButton1.onClick.AddListener(() =>
+        {
+            CommentBut1.cb = 0; // 문제1의 해설이므로 전역변수에 '0'값을 넘겨준다.(인덱스는 0부터 시작)
+            SceneManager.LoadScene("CommentScene"); // 해설 Scene으로 이동
+        });
+    }
+
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+//**  해설 - 문제 2 버튼 **// (= 피드백 이후라서 '문제 1버튼'과 좀 다를 수 있음.)
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI; // UI 사용하기 위해
+using UnityEngine.SceneManagement; // 씬 전환하기 위해
+
+public class CommentBut2 : MonoBehaviour
+{
+    //** UI **//
+    ★// Button
+    public Button[] CButtons; // 문제 2. 해설버튼
+    public Button CButton2; // 문제 2. 해설버튼
+    public Button CButton3; // 문제 2. 해설버튼
+    public Button CButton4; // 문제 2. 해설버튼
+    public Button CButton5; // 문제 2. 해설버튼
+    public Button CButton6; // 문제 2. 해설버튼
+    public Button CButton7; // 문제 2. 해설버튼
+
+    //static public int cb2;
+
+
+    //** Start 함수 **//
+    // Start is called before the first frame update
+    void Start()
+    {
+        ★ButtonSetting(); // UseSolveData.cs에서 SendMessage로 실행하라고 메세지로 알려줌
+        
+    }
+
+    //** OnClick 함수 **//
+    //** 버튼을 클릭하면 실행할 함수**//
+    ★void ButtonSetting()
+    {
+        for (int i = 0; i < CButtons.Length; i++)
+        {
+            int index = i;
+
+            CButtons[index].onClick.AddListener(() =>
+            {
+                ★UseSolveData.instance.SolveData1.currentIndex = index;
+                SceneManager.LoadScene("CommentScene"); // 해설 scene으로 이동
+            });
+        }
+
+        ★// 문제 2 해설버튼을 클릭하면
+        CButton2.onClick.AddListener(() =>
+        {
+            //(CommentBut1.cs의 전역변수 cb의 사용)
+            UseSolveData.instance.SolveData1.currentIndex = 1;
+            SceneManager.LoadScene("CommentScene"); // 해설 scene으로 이동
+        });
+
+
+        CButton3.onClick.AddListener(() =>
+        {
+            //(CommentBut1.cs의 전역변수 cb의 사용)
+            UseSolveData.instance.SolveData1.currentIndex = 2;
+            SceneManager.LoadScene("CommentScene"); // 해설 scene으로 이동
+        });
+
+        CButton3.onClick.AddListener(() =>
+        {
+            //(CommentBut1.cs의 전역변수 cb의 사용)
+            UseSolveData.instance.SolveData1.currentIndex = 3;
+            SceneManager.LoadScene("CommentScene"); // 해설 scene으로 이동
+        });
+    }
+}
+
+
