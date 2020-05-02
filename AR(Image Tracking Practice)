@@ -44,7 +44,7 @@ using UnityEngine.XR.ARSubsystems; // ARSubsystem 사용위해(부가적인 편�
 
 public class TrackekdImageInfoManager : MonoBehaviour
 {
-    //**  ARTrackedImageManager 사용 **//
+    //**  ★ ARTrackedImageManager 사용 **//
     ARTrackedImageManager m_TrackedImageManager;
 
 
@@ -58,7 +58,7 @@ public class TrackekdImageInfoManager : MonoBehaviour
     //** Awake() 함수 **//
     void Awake()
     {
-        m_TrackedImageManager = GetComponent<ARTrackedImageManager>();   // <ARTrackedImageManager>() 컴포넌트를 가져온다.
+        m_TrackedImageManager = GetComponent<ARTrackedImageManager>();   // ★ <ARTrackedImageManager>() 컴포넌트를 가져온다.
         m_TrackedImageManager.trackedImagePrefab.SetActive(true);  // 이미지 트래킹을 하고 있지 않으면 생성된 프리팹이 비활성화어야 하므로(처음에는 활성화)
     }
 
