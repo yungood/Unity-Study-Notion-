@@ -1,1 +1,142 @@
+※ Plane Tracking Practice
+
+예제 실습) Plane 인식 후 터치하면 해당 위치에 프리팹 생성
+          
+                    
+▶ Hierarchy창
+  □ AR Session
+    - Transform
+    - AR Session(Script)
+    - AR Input Manager(Script)
+  □ AR Session Origin
+    - Transform
+    - AR Session Origin
+    〓 AR Plane Mangaer
+        = // Script // 
+        = Plane Prefab : 프리팹 추가
+        = Detection Mode : 기본 설정
+    〓 AR Raycast Manager
+    〓 Placement Controller(Script)   
+    □ AR Camera
+      - 기존 추가되어 있는 Component들(새로 추가한 Component 없음)
+      
+      
+▶ Placement Controller.cs(Script 추가)
+
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.XR.ARFoundation; // ARFoundation 사용하기 위해
+using UnityEngine.XR.ARSubsystems; // Raycast 사용 위해
+
+
+// ★ RequireComponent :특정 Component 자동으로 추가 요청(Add component하지 않아도 자동으로 오브젝트에 추가)
+//    - 장점 : 스크립트를 실행하는데 꼭  필요한 Component가 없는 상태로 실행되는 오류를 사전에 막을 수 있도록 응용할 수 있다.
+[RequireComponent(typeof(ARRaycastManager))]  // ARRaycastManager 요청
+
+
+public class PlacementController : MonoBehaviour
+{
+
+    //** ARRaycastManger **//
+    private ARRaycastManager arARRaycastManager; // ★ ARRAycastManager가 Raycast 실행.(Raycast를 사용하기 위해)
+
+
+    //** GameObject **//
+    [SerializeField] // 직렬화 >> Private로 선언한 변수 [SerializeFiedl] 선언하면 Inspector 창에서 보여짐
+    private GameObject placePrefab; // 터치할 지점에 생성할 GameObject
+
+    //** Property **//
+    public GameObject Placeprefab // 접근한정자, 데이터타입, 프로퍼티명
+    {
+        get
+        {
+            return placePrefab; // placePrefab 값 반환
+        }
+        set
+        {
+            placePrefab = value; // placePrefab 값 설정
+        }
+    }
+
+    //** List(ARRaycastHit) **//
+    static List<ARRaycastHit> hits = new List<ARRaycastHit>();
+
+
+    //** Awake() 함수 **//
+    void Awake()
+    {
+        arARRaycastManager = GetComponent<ARRaycastManager>(); // ★ ARRaycastManager Component를 가져온다.
+    }
+
+    //** TryGetTouchPosition **//
+    bool TryGetTouchPosition(out Vector2 touchPosition)
+    {
+        if(Input.touchCount > 0) // ★ 터치 횟수가 0보다 크면(터치를 하였다면) => 입력 감지
+        {
+            touchPosition = Input.GetTouch(0).position; // ★ 첫번째 입력 값의 위치정보를 가져온다.
+            return true;  //true 반환
+        }
+
+        touchPosition = default; // 기본 값
+        return false; //false 반환
+    }
+
+
+    // Update is called once per frame
+    void Update()
+    {
+        // TryGetTouchPosition() 반환값이 false이면
+        if (!TryGetTouchPosition(out Vector2 touchPosition))
+        {
+            return; // 즉시 종료(이 이후의 코드는 읽지 않겠다. Update문 종료)
+        }
+
+        // TryGetTouchPosition() 반환값이 true이면 '즉시 종료' 하지 않으므로 ★ Raycast 실행
+        if (arARRaycastManager.Raycast(touchPosition, hits, TrackableType.Planes)) //rARRaycastManager.Raycast(touchPosition, hits, UnityEngine.XR.ARSubsystems.TrackableType.PlaneWithinPolygon
+        {
+            // ★ Raycast의 결과물은 Pose 타입.
+            var hitPose = hits[0].pose; //(Pose hitPose = hit[0].pose)
+            Instantiate(placePrefab, hitPose.position, hitPose.rotation);
+        }
+
+        /*
+           ★   ARRaycastManager arARRaycastManager (touchPosition, hits, TrackableType.PlaneWithinPolygon)  
+
+               touchposition : Raycast가 실행되는 화면상의 지점
+               hits : Raycast가 끝났을 때, 그 Raycast의 결과물을 저장하는 컨테이너
+               TrackableType.(Plane/Image/.......) : Raycast를 실행할 때, 어떤 유형? 친구?를 감지?인식?할  것 인지?
+
+
+           ★  Instantiate(placePrefab, hitPose.position, hitPose.rotation); 
+
+               placePrefab : 생성할 복제본
+               hitpose.position : 생성할 위치(Vector3으로 생성)
+               hitpose.rotation : 생성될 GameObjec의 회전값
+       */
+
+    }
+
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+※ out(참조형 매개변수)
+// https://blanedil.tistory.com/7
+// https://codingcoding.tistory.com/56
+// http://blog.naver.com/PostView.nhn?blogId=rwans0397&logNo=220790304270&parentCategoryNo=&categoryNo=14&viewDate=&isShowPopularPosts=false&from=postView
+
+
+※ Vector2(2차원 벡터) -> 암시적으로 Vector3로 변환될 수 있다.(결과적으로 z는 0이된다.)
+// https://docs.unity3d.com/kr/530/ScriptReference/Vector2.html
+// https://teddy.tistory.com/19
+
+
+※ Touch 입력
+// https://m.blog.naver.com/PostView.nhn?blogId=pxkey&logNo=221312986925&proxyReferer=https:%2F%2Fwww.google.com%2F
+
+
+※ Line Renderer 컴포넌트
+// https://docs.unity3d.com/kr/2018.4/Manual/class-LineRenderer.html
 
