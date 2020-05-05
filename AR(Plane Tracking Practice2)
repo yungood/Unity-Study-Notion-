@@ -18,7 +18,7 @@ public class PlanePractice3 : MonoBehaviour
     //** ARPlaneManaer **//
     ARPlaneManager arPlaneManager; // PlaneManager 사용하기 위해
 
-    //** ARPlane arPlane **//
+    //** ARPlane **//
     ARPlane arPlane;
 
     //** ARRaycastHIt **//
