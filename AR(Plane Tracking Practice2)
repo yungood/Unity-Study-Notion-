@@ -1,0 +1,169 @@
+예제) 감지된 Plane을 AR Default Plane으로 그려주고, 감지된 Plane을 터치하면 그 자리에 Cube Prefab이 생성되고,
+      Cube Plrefab이 생성되며, 그려진 AR Default Plane 사라지고,
+      Coroutine 실행하여 1.5초 뒤에 생성된 Cube Prefab 사라지고, 다시 AR Default Plane 생성.
+
+
+using System.Collections;
+using System.Collections.Generic;
+using System.Threading;
+using UnityEngine;
+using UnityEngine.XR.ARFoundation; //
+using UnityEngine.XR.ARSubsystems; //
+
+public class PlanePractice3 : MonoBehaviour
+{
+    //** ARRaycastManager **//
+    ARRaycastManager arRayManager; // RaycastManager 사용하기 위해
+
+    //** ARPlaneManaer **//
+    ARPlaneManager arPlaneManager; // PlaneManager 사용하기 위해
+
+    //** ARPlane arPlane **//
+    ARPlane arPlane;
+
+    //** ARRaycastHIt **//
+    private List<ARRaycastHit> hits = new List<ARRaycastHit>(); // Raycast 결과물 
+
+
+    //** GameObject **//
+    public GameObject CubePrefab; // 감지된 Plane위에 생성할 CubePrefab
+    GameObject cubeprefab; // Instantiate로 생성된 복제본 PreFab
+
+    //** bool **//
+    bool rayState; // 현재 Raycast 상태를 판단하기 위해 
+
+
+
+    //** Awake() 함수 **//
+    void Awake()
+    {
+        arRayManager = GetComponent<ARRaycastManager>(); // RaycastManager 컴포넌트 가져오기
+        arPlaneManager = GetComponent<ARPlaneManager>(); // PlanManager 컴포넌트 가져오기
+
+        //arRayManager.gameObject.SetActive(true); // Raycast를 통해 생성되는 Prefab 활성화
+        CubePrefab.SetActive(true);
+        arPlaneManager.planePrefab.SetActive(true); // 감지된 Plane위해 생성되는 planePrefab 활성화
+
+        rayState = false; // 처음 Raycast 상태는 false
+    }
+
+
+    //** OnEnable() 함수 **//
+    void OnEnable()
+    {
+        // ▶ planesChanged : 트래킹 중 plane에 변경사항이 생겼을 때 여기에 맞춰서 실행되는 이벤트
+        // planesChanged에 OnTrackedPlane 함수 등록
+        arPlaneManager.planesChanged += OnTrackedPlane;
+    }
+
+    //** OnDisable() 함수 **//
+    void OnDisable()
+    {
+        // planesChanged에 OnTrackedPlane 함수 해제
+        arPlaneManager.planesChanged -= OnTrackedPlane;
+    }
+
+
+    //** Update() 함수 **//
+    void Update()
+    {
+        // 터치가 한 번도 없으면
+        if (Input.touchCount == 0)
+        {
+            return; // 바로 종료
+        }
+
+        // 첫번째 터치 값 받아온다,
+        Touch touch = Input.GetTouch(0);
+
+
+        // 터치 상태가 Began이 아니라면(처음 감지된 것이 아니라면)
+        if (touch.phase != TouchPhase.Began)
+        {
+            return; // 바로 종료
+        }
+
+
+        // 현재 Raycast 상태가 false이면
+        if(rayState == false)
+        {
+            //CubePrefab.SetActive(true);
+
+            // Raycast 실행(광선에 물체가 닿으면 true값 반환)
+            if (arRayManager.Raycast(touch.position, hits, TrackableType.Planes))
+            {
+
+                // 여러 개의 정보 중에서 첫 번째 정보(입력정보(터치))만 사용할 것이므로 Index 값은 0
+                Pose hitpose = hits[0].pose;
+
+                // Instantiate 함수를 통해서 prefab 생성(복제본)
+                cubeprefab = Instantiate(CubePrefab, hitpose.position, hitpose.rotation) as GameObject;
+            }
+
+            rayState = true; // 현재 Raycast 상태를 true로 변경
+        }
+
+        // 코루틴 실행
+        StartCoroutine("CubePrefabState");
+    }
+
+  
+    IEnumerator CubePrefabState()
+    {
+        //1.5초 뒤에
+        yield return new WaitForSeconds(1.5f);
+
+        Destroy(cubeprefab); // 현재 생성된 CubePrefab 삭제
+        arPlane.gameObject.SetActive(true); // 비활성화되었던 Plane 활성화
+        rayState = false; // 현재 raycast 상태 false로 변경
+    }
+
+    //** onTrackedPlane() 함수 **//
+    void OnTrackedPlane(ARPlanesChangedEventArgs EventArgs)
+    {
+        //** add
+        foreach (var plane in EventArgs.added)
+        {
+            arPlane = plane;
+            PlaneUpdateInfo(plane); // 
+        }
+
+        //** update
+        foreach (var plane in EventArgs.updated)
+        {
+            arPlane = plane;
+            PlaneUpdateInfo(plane); //
+        }
+
+    }
+
+    //** PlaneUpdateInfo() 함수 **//
+    void PlaneUpdateInfo(ARPlane plane)
+    {
+        // 현재 Raycast 상태가 true이면(터치 지점에 Cube Prefab이 생성되었을 것이므로)
+        if(rayState == true) // (hits.Count == 1)
+        {
+            // 감지된 Plane위해 생성되는 planePrefab이 보이는 상태라면
+            if (plane.gameObject.activeSelf == true) 
+            {
+                plane.gameObject.SetActive(false); // PlanepPrefab 비활성화
+            }
+            //return; // 바로 종료 
+        }
+    }
+}
+
+
+
+
+
+//** Trackable Managers
+// https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@2.1/manual/trackable-managers.html
+
+
+//** AR Plane Manager
+// https://docs.unity3d.com/Packages/com.unity.xr.arfoundation@2.2/manual/plane-manager.html
+
+
+//** Destory
+// https://cpp11.tistory.com/15
